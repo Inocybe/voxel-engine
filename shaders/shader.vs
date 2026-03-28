@@ -10,10 +10,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 
-
 out vec3 vWorldPos;
 out vec3 vNormal;
 out vec2 vUV;
+
 
 void main()
 {
