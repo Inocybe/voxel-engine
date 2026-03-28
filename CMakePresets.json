@@ -1,0 +1,22 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "mingw-clang",
+            "displayName": "MinGW with Clang",
+            "description": "MinGW Makefiles generator with Clang compilers",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_BUILD_TYPE": "Debug"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ]
+}
