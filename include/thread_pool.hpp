@@ -1,7 +1,11 @@
 #pragma once
 
+
+#include <mutex>
 #include <thread>
 #include <vector>
+#include <condition_variable>
+
 
 class Thread {
 public:
@@ -28,6 +32,9 @@ public:
     void addTask(Callable&& func, Args&&... args) {
         threads.emplace_back(std::forward<Callable>(func), std::forward<Args>(args)...);
     }
+
+    int getThreadCount() const;
+    void clearThreads();
 private:
     std::vector<Thread> threads;
     unsigned int maxThreads = std::thread::hardware_concurrency() - 1; // leave one thread for main thread
