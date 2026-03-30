@@ -6,6 +6,8 @@
 #include <vector>
 #include <condition_variable>
 
+#include <world.hpp>
+
 
 class Thread {
 public:
