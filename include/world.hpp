@@ -51,6 +51,10 @@ public:
     World() = default;
     std::unordered_map<std::tuple<int, int, int>, Chunk> world;
     std::mutex worldMutex;
-    
 
+    std::queue<MeshData> meshUploadQueue;
+    std::mutex meshQueueMutex;
+    std::condition_variable meshReadyCV;
+
+    std::atomic<bool> running = true;
 };
