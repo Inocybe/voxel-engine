@@ -11,9 +11,9 @@
 
 #include <thread_pool.hpp>
 
+
+
 constexpr int CHUNK_SIZE = 16;
-
-
 
 #pragma pack(push, 1)
 struct Vertex {
@@ -24,20 +24,31 @@ struct Vertex {
 #pragma pack(pop)
 
 
+enum Direction { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
+
 
 struct Block {
     uint8_t type;
 };
 
-struct Chunk {
-    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
+class Chunk {
+public:
     int x, y, z; // chunk coordinates
+    
+    bool isAir(int x, int y, int z);
+private:
+    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
 };
 
-struct MeshData {
+class MeshData {
+public:
+    int x, y, z; // chunk coordinates
+
+    void addFace(Direction dir);
+private:
+
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    int x, y, z; // chunk coordinates
 };
 
 struct ChunkMesh {

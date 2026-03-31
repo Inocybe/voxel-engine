@@ -27,6 +27,17 @@ include_directories(external/glfw/include)
 add_library(glad src/glad.c)
 target_include_directories(glad PUBLIC include)
 
+# PERLIN
+add_library(perlin INTERFACE) # header only library so is an interface
+target_sources(perlin INTERFACE
+    ${PROJECT_SOURCE_DIR}/include/perlin/seamless_noise_generator_2d.h
+        ${PROJECT_SOURCE_DIR}/include/perlin/fractal_noise_generator.h
+        ${PROJECT_SOURCE_DIR}/include/perlin/perlin_noise_generator.h
+        ${PROJECT_SOURCE_DIR}/include/perlin/point.h
+        ${PROJECT_SOURCE_DIR}/include/perlin/vector.h
+        ${PROJECT_SOURCE_DIR}/include/perlin/math.h)
+target_include_directories(perlin INTERFACE include)
+
 # OTHER
 add_library(shader src/shader.cpp)
 target_include_directories(shader PUBLIC include include/glm)
@@ -40,15 +51,8 @@ target_include_directories(engine PUBLIC include include/glm)
 add_library(perlin src/perlin.cpp)
 target_include_directories(perlin PUBLIC include include/glm)
 
-add_library(block src/block.cpp)
-target_include_directories(block PUBLIC include include/glm)
-
-add_library(mesh src/mesh.cpp)
-target_include_directories(mesh PUBLIC include include/glm)
-
 add_library(world src/world.cpp)
 target_include_directories(world PUBLIC include include/glm perlin)
-target_compile_definitions(world PUBLIC GLM_FORCE_CXX11 GLM_ENABLE_EXPERIMENTAL)
 
 #include_directories(external/glfw/include include include/glm)
 
@@ -57,7 +61,6 @@ target_link_libraries(main
     engine
     shader
     texture
-    block
     mesh
     world
     perlin
