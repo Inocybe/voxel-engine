@@ -11,6 +11,7 @@
 #include <mutex>
 
 // my own stuff I made to link
+#include <world.hpp>
 #include <shader.hpp>
 #include <texture.hpp>
 #include <engine.hpp>
@@ -40,8 +41,14 @@ int main() {
 
 
 */
+    World world;
+    Chunk defaultChunk;
+    defaultChunk.createBaseChunk();
 
+    world.world[std::tuple<int, int, int>(0, 0, 0)] = defaultChunk;
     
+
+
     // RENDER LOOP
     while(engine->Run()) {
         // use matrix's unifrom location and set matrix

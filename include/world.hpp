@@ -7,6 +7,7 @@
 #include <mutex>
 #include <queue>
 #include <vector>
+#include <random>
 #include <unordered_map>
 
 #include <thread_pool.hpp>
@@ -27,34 +28,102 @@ struct Vertex {
 enum Direction { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
 
 
+struct Block;
+class Chunk;
+class MeshData;
+class ChunkMesh;
+class World;
+
+
+
+// if block is 0 it is air, otherwise will be just block 
 struct Block {
     uint8_t type;
 };
+
+
+
 
 class Chunk {
 public:
     int x, y, z; // chunk coordinates
     
-    bool isAir(int x, int y, int z);
+
+    void createBaseChunk();
+    void createRandomChunk();
+    bool isBlockAir(int x, int y, int z);
+
+    // hear for now, temporary
+    void draw();
 private:
     std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
+    ChunkMesh mesh; // temporary
 };
 
 class MeshData {
 public:
     int x, y, z; // chunk coordinates
 
-    void addFace(Direction dir);
+    MeshData() = default;
+    //MeshData(World& world); TEMPORARY REMOVING
+
+    void addFace(int wx, int wy, int wz, Direction dir);
 private:
+    //World& world;
 
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+
+
+
+    // index into this array to get cube face positions 
+    // works like [direction][vertex]
+    const glm::vec3 cubeFacePositions[6][4] = {
+        // +X (right)
+        { {1,0,0}, {1,1,0}, {1,1,1}, {1,0,1} },
+
+        // -X (left)
+        { {0,0,1}, {0,1,1}, {0,1,0}, {0,0,0} },
+
+        // +Y (top)
+        { {0,1,1}, {1,1,1}, {1,1,0}, {0,1,0} },
+
+        // -Y (bottom)
+        { {0,0,0}, {1,0,0}, {1,0,1}, {0,0,1} },
+
+        // +Z (front)
+        { {0,0,1}, {1,0,1}, {1,1,1}, {0,1,1} },
+
+        // -Z (back)
+        { {0,1,0}, {1,1,0}, {1,0,0}, {0,0,0} }
+    };
+    // this one just dependant on the direction
+    const glm::vec3 cubeFaceNormals[6] = {
+        { 1,  0,  0}, // +X
+        {-1,  0,  0}, // -X
+        { 0,  1,  0}, // +Y
+        { 0, -1,  0}, // -Y
+        { 0,  0,  1}, // +Z
+        { 0,  0, -1}  // -Z
+    };
+    // this one dependant on the vertex
+    const glm::vec2 cubeFaceUVs[4] = {
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f}
+    };
 };
 
-struct ChunkMesh {
+class ChunkMesh {
+public:
+    ChunkMesh();
+    ~ChunkMesh();
+    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
+    void draw() const;
+private:
     unsigned int VAO, VBO, EBO;
     int indexCount;
-    int x, y, z; // chunk coordinates
 };
 
 class World {
@@ -67,5 +136,7 @@ public:
     std::mutex meshQueueMutex;
     std::condition_variable meshReadyCV;
 
-    std::atomic<bool> running = true;
+    //std::atomic<bool> running = true;
+
+    void drawChunks() const;
 };
