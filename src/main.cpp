@@ -41,28 +41,33 @@ int main() {
 
 
 */
+
+    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
+    shader.use();
+
+
     World world;
     Chunk defaultChunk;
     defaultChunk.createBaseChunk();
 
-    world.world[std::tuple<int, int, int>(0, 0, 0)] = defaultChunk;
+    world.world.emplace(std::make_tuple(0, 0, 0), defaultChunk);
     
 
 
     // RENDER LOOP
     while(engine->Run()) {
         // use matrix's unifrom location and set matrix
-        //shader.use();
+        shader.use();
 
-        // Set view and projection
-        //shader.setMat4("view", engine->GetViewMatrix());
-        //shader.setMat4("projection", engine->GetProjectionMatrix((float)SCR_WIDTH / (float)SCR_HEIGHT));
+        // Set view and projection and position
+        shader.setMat4("view", engine->GetViewMatrix());
+        shader.setMat4("projection", engine->GetProjectionMatrix((float)SCR_WIDTH / (float)SCR_HEIGHT));
 
-        //world.update();        
+        world.drawChunks();        
 
 
         glm::mat4 model = glm::mat4(1.0f);
-        //shader.setMat4("model", model);
+        shader.setMat4("model", model);
 
         engine->EndFrame();
     }

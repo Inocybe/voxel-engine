@@ -41,6 +41,16 @@ struct Block {
     uint8_t type;
 };
 
+class ChunkMesh {
+public:
+    ChunkMesh();
+    ~ChunkMesh();
+    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
+    void draw() const;
+private:
+    unsigned int VAO, VBO, EBO;
+    int indexCount;
+};
 
 
 
@@ -54,7 +64,7 @@ public:
     bool isBlockAir(int x, int y, int z);
 
     // hear for now, temporary
-    void draw();
+    void draw() const;
 private:
     std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
     ChunkMesh mesh; // temporary
@@ -64,15 +74,16 @@ class MeshData {
 public:
     int x, y, z; // chunk coordinates
 
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+
     MeshData() = default;
     //MeshData(World& world); TEMPORARY REMOVING
 
     void addFace(int wx, int wy, int wz, Direction dir);
 private:
     //World& world;
-
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
 
 
 
@@ -115,21 +126,32 @@ private:
     };
 };
 
-class ChunkMesh {
-public:
-    ChunkMesh();
-    ~ChunkMesh();
-    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
-    void draw() const;
-private:
-    unsigned int VAO, VBO, EBO;
-    int indexCount;
+
+
+
+
+
+
+
+
+
+
+
+struct TupleHash {
+    size_t operator()(const std::tuple<int, int, int>& t) const {
+        auto h1 = std::hash<int>{}(std::get<0>(t));
+        auto h2 = std::hash<int>{}(std::get<1>(t));
+        auto h3 = std::hash<int>{}(std::get<2>(t));
+        return h1 ^ (h2 << 32) ^ (h3 << 16);
+    }
 };
+
+
 
 class World {
 public:
     World() = default;
-    std::unordered_map<std::tuple<int, int, int>, Chunk> world;
+    std::unordered_map<std::tuple<int, int, int>, Chunk, TupleHash> world;
     std::mutex worldMutex;
 
     std::queue<MeshData> meshUploadQueue;

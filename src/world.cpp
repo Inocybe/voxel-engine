@@ -35,15 +35,22 @@ void Chunk::createBaseChunk() {
                 int wy = y;
                 int wz = z;
 
-                if (self->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
-                if (self->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
-                if (self->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
-                if (self->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
-                if (self->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
-                if (self->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
+                if (this->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
+                if (this->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
+                if (this->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
+                if (this->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
+                if (this->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
+                if (this->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
             }
         }
     }
+
+    mesh.upload(
+        meshData.vertices.data(), 
+        meshData.vertices.size() * sizeof(Vertex), 
+        meshData.indices.data(), 
+        meshData.indices.size() * sizeof(unsigned int)
+    );
 }
 
 
@@ -55,7 +62,7 @@ void Chunk::createRandomChunk() {
 
     }
 }
-void Chunk::draw() {
+void Chunk::draw() const {
     mesh.draw();
 }
 
@@ -72,7 +79,7 @@ void MeshData::addFace(int wx, int wy, int wz, Direction dir) {
         v.normal = cubeFaceNormals[dir];
         v.uv = cubeFaceUVs[vert];
 
-        vertices.push_back(vert);
+        vertices.push_back(v);
     }
 
     // ADDING 6 INDICES TO CREATE THE FACE
@@ -145,6 +152,6 @@ void ChunkMesh::draw() const {
 
 void World::drawChunks() const {
     for (const auto& [location, data] : world) {
-        data->draw();
+        data.draw();
     }
 }

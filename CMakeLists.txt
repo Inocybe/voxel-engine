@@ -48,11 +48,8 @@ target_include_directories(texture PUBLIC include include/glm)
 add_library(engine src/engine.cpp)
 target_include_directories(engine PUBLIC include include/glm)
 
-add_library(perlin src/perlin.cpp)
-target_include_directories(perlin PUBLIC include include/glm)
-
 add_library(world src/world.cpp)
-target_include_directories(world PUBLIC include include/glm perlin)
+target_include_directories(world PUBLIC include include/glm)
 
 #include_directories(external/glfw/include include include/glm)
 
@@ -61,9 +58,7 @@ target_link_libraries(main
     engine
     shader
     texture
-    mesh
     world
-    perlin
     glfw
     glad
     ${CMAKE_DL_LIBS})
