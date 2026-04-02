@@ -30,26 +30,16 @@ int main() {
         std::cerr << "Window initizliation failed" << e.what() << std::endl;
         return -1;
     }
-/*
-    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
-    //World world(*engine);
-    World world(*engine);
-
-    shader.use();
-    shader.setVec3("uCameraPos", engine->getCameraPos());
-    shader.setInt("uAlbedo", 0);
-
-
-*/
 
     Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
     shader.use();
 
 
-    World world;
+    World world(engine->getCameraPosLocation());
+
+
     std::unique_ptr<Chunk> defaultChunk = std::make_unique<Chunk>();
     defaultChunk->createRandomChunk();
-
     world.world.emplace(std::make_tuple(0, 0, 0), std::move(defaultChunk));
     
 

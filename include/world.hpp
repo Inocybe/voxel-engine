@@ -11,124 +11,7 @@
 #include <unordered_map>
 
 #include <thread_pool.hpp>
-
-
-
-constexpr int CHUNK_SIZE = 16;
-
-#pragma pack(push, 1)
-struct Vertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
-};
-#pragma pack(pop)
-
-
-enum Direction { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
-
-
-struct Block;
-class Chunk;
-class MeshData;
-class ChunkMesh;
-class World;
-
-
-
-// if block is 0 it is air, otherwise will be just block 
-struct Block {
-    uint8_t type;
-};
-
-class ChunkMesh {
-public:
-    ChunkMesh();
-    ~ChunkMesh();
-    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
-    void draw() const;
-private:
-    unsigned int VAO, VBO, EBO;
-    int indexCount;
-};
-
-
-
-class Chunk {
-public:
-    int x, y, z; // chunk coordinates
-    
-
-    void createBaseChunk();
-    void createRandomChunk();
-    bool isBlockAir(int x, int y, int z);
-
-    // hear for now, temporary
-    void draw() const;
-private:
-    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
-    ChunkMesh mesh; // temporary
-};
-
-class MeshData {
-public:
-    int x, y, z; // chunk coordinates
-
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-
-
-    MeshData() = default;
-    //MeshData(World& world); TEMPORARY REMOVING
-
-    void addFace(int wx, int wy, int wz, Direction dir);
-private:
-    //World& world;
-
-
-
-    // index into this array to get cube face positions 
-    // works like [direction][vertex]
-    const glm::vec3 cubeFacePositions[6][4] = {
-        // +X (right)
-        { {1,0,0}, {1,1,0}, {1,1,1}, {1,0,1} },
-
-        // -X (left)
-        { {0,0,1}, {0,1,1}, {0,1,0}, {0,0,0} },
-
-        // +Y (top)
-        { {0,1,1}, {1,1,1}, {1,1,0}, {0,1,0} },
-
-        // -Y (bottom)
-        { {0,0,0}, {1,0,0}, {1,0,1}, {0,0,1} },
-
-        // +Z (front)
-        { {0,0,1}, {1,0,1}, {1,1,1}, {0,1,1} },
-
-        // -Z (back)
-        { {0,1,0}, {1,1,0}, {1,0,0}, {0,0,0} }
-    };
-    // this one just dependant on the direction
-    const glm::vec3 cubeFaceNormals[6] = {
-        { 1,  0,  0}, // +X
-        {-1,  0,  0}, // -X
-        { 0,  1,  0}, // +Y
-        { 0, -1,  0}, // -Y
-        { 0,  0,  1}, // +Z
-        { 0,  0, -1}  // -Z
-    };
-    // this one dependant on the vertex
-    const glm::vec2 cubeFaceUVs[4] = {
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f}
-    };
-};
-
-
-
-
+#include <chunk.hpp>
 
 
 
@@ -143,10 +26,9 @@ struct TupleHash {
 };
 
 
-
 class World {
 public:
-    World() = default;
+    World(glm::vec3& cameraPos);
     std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<Chunk>, TupleHash> world;
     std::mutex worldMutex;
 
@@ -157,4 +39,6 @@ public:
     //std::atomic<bool> running = true;
 
     void drawChunks() const;
+private:
+    glm::vec3& cameraPos;
 };

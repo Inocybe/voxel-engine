@@ -48,6 +48,10 @@ target_include_directories(texture PUBLIC include include/glm)
 add_library(engine src/engine.cpp)
 target_include_directories(engine PUBLIC include include/glm)
 
+add_library(chunk src/chunk.cpp)
+target_include_directories(chunk PUBLIC include include/glm)
+
+
 add_library(world src/world.cpp)
 target_include_directories(world PUBLIC include include/glm)
 
@@ -58,6 +62,7 @@ target_link_libraries(main
     engine
     shader
     texture
+    chunk
     world
     glfw
     glad
