@@ -71,6 +71,8 @@ void Chunk::draw() const {
 
 
 void MeshData::addFace(int wx, int wy, int wz, Direction dir) {
+    unsigned int baseIndex = static_cast<unsigned int>(vertices.size());
+
     // ADDING 4 VERTICES TO THE VERTICY ARRAY
     for (int vert = 0; vert < 4; vert++) {
         Vertex v;
@@ -84,9 +86,8 @@ void MeshData::addFace(int wx, int wy, int wz, Direction dir) {
 
     // ADDING 6 INDICES TO CREATE THE FACE
     static const unsigned int faceIndices[6] = { 0, 1, 2, 2, 3, 0 };
-    unsigned int indexOffset = dir * 4;
     for (int i = 0; i < 6; i++) {
-        indices.push_back(indexOffset + faceIndices[i]);
+        indices.push_back(baseIndex + faceIndices[i]);
     }
 }
 
@@ -152,6 +153,6 @@ void ChunkMesh::draw() const {
 
 void World::drawChunks() const {
     for (const auto& [location, data] : world) {
-        data.draw();
+        data->draw();
     }
 }

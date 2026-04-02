@@ -47,10 +47,10 @@ int main() {
 
 
     World world;
-    Chunk defaultChunk;
-    defaultChunk.createBaseChunk();
+    std::unique_ptr<Chunk> defaultChunk = std::make_unique<Chunk>();
+    defaultChunk->createBaseChunk();
 
-    world.world.emplace(std::make_tuple(0, 0, 0), defaultChunk);
+    world.world.emplace(std::make_tuple(0, 0, 0), std::move(defaultChunk));
     
 
 

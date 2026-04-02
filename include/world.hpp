@@ -133,10 +133,6 @@ private:
 
 
 
-
-
-
-
 struct TupleHash {
     size_t operator()(const std::tuple<int, int, int>& t) const {
         auto h1 = std::hash<int>{}(std::get<0>(t));
@@ -151,7 +147,7 @@ struct TupleHash {
 class World {
 public:
     World() = default;
-    std::unordered_map<std::tuple<int, int, int>, Chunk, TupleHash> world;
+    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<Chunk>, TupleHash> world;
     std::mutex worldMutex;
 
     std::queue<MeshData> meshUploadQueue;
