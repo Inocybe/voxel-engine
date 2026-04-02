@@ -58,10 +58,55 @@ void Chunk::createBaseChunk() {
 
 
 void Chunk::createRandomChunk() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 3);
+    int random_number = distrib(gen);
     for (int i = 0; i < blocks.size(); i++) {
-
+        int random_number = distrib(gen);
+        Block type;
+        type.type = random_number;
+        blocks[i] = type;
     }
+    MeshData meshData;
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                 int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
+                Block b = blocks[index];
+
+                // Skip air blocks entirely -- nothing to draw.
+                // "continue" jumps to the next loop iteration immediately.
+                if (b.type == 0) continue;
+
+                // Face culling -- only add a face if the neighbor is air.
+                // A face shared between two solid blocks is NEVER visible,
+                // so adding it just wastes GPU time drawing nothing.
+                // World position = chunk position * chunk size + local position.
+                int wx = x;
+                int wy = y;
+                int wz = z;
+
+                if (this->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
+                if (this->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
+                if (this->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
+                if (this->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
+                if (this->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
+                if (this->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
+            }
+        }
+    }
+
+    mesh.upload(
+        meshData.vertices.data(), 
+        meshData.vertices.size() * sizeof(Vertex), 
+        meshData.indices.data(), 
+        meshData.indices.size() * sizeof(unsigned int)
+    );
+
 }
+
 void Chunk::draw() const {
     mesh.draw();
 }

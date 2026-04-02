@@ -48,7 +48,7 @@ int main() {
 
     World world;
     std::unique_ptr<Chunk> defaultChunk = std::make_unique<Chunk>();
-    defaultChunk->createBaseChunk();
+    defaultChunk->createRandomChunk();
 
     world.world.emplace(std::make_tuple(0, 0, 0), std::move(defaultChunk));
     
