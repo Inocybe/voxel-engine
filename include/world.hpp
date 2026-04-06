@@ -38,7 +38,10 @@ public:
 
     //std::atomic<bool> running = true;
 
-    void drawChunks() const;
+    void update() const;
 private:
     glm::vec3& cameraPos;
+
+    void drawChunks() const;
+
 };

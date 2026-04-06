@@ -36,7 +36,7 @@ public:
     bool Run();
     void EndFrame();
     glm::mat4 GetViewMatrix();
-    glm::mat4 GetProjectionMatrix(float aspect);
+    glm::mat4 GetProjectionMatrix();
 
     void process_input();
     void calculate_delta();
@@ -64,6 +64,8 @@ private:
     float yaw = -90.0f;
     float pitch = 0.0f; 
     float fov = 45.0f;
+    glm::mat4 m_projection = glm::perspective(glm::radians(fov), (float)screen_width / (float)screen_height, 0.1f, 1000.0f);
+
 
     // MOUSE VARS
     float lastX = screen_width / 2.0f;

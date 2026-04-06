@@ -33,8 +33,7 @@ int main() {
 
     Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
     shader.use();
-
-
+    
     World world(engine->getCameraPosLocation());
 
 
@@ -51,9 +50,10 @@ int main() {
 
         // Set view and projection and position
         shader.setMat4("view", engine->GetViewMatrix());
-        shader.setMat4("projection", engine->GetProjectionMatrix((float)SCR_WIDTH / (float)SCR_HEIGHT));
+        shader.setMat4("projection", engine->GetProjectionMatrix());
 
-        world.drawChunks();        
+
+        world.update();        
 
 
         glm::mat4 model = glm::mat4(1.0f);

@@ -71,8 +71,8 @@ glm::mat4 Engine::GetViewMatrix() {
     return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 }
 
-glm::mat4 Engine::GetProjectionMatrix(float aspect) {
-    return glm::perspective(glm::radians(fov), aspect, 0.1f, 1000.0f);
+glm::mat4 Engine::GetProjectionMatrix() {
+    return m_projection;
 }
 
 
@@ -84,12 +84,13 @@ void Engine::error_callback(int id, const char* discriptor) {
 
 
 void Engine::framebuffer_size_callback(GLFWwindow* windowInstance, int width, int height) {
-    glViewport(0,0, width, height);
     Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(windowInstance));
     if (engine) engine->on_framebuffer_size(windowInstance, width, height);
 }
 void Engine::on_framebuffer_size(GLFWwindow* windowInstance, int width, int height) {
     glViewport(0, 0, width, height);
+    // set the projection matrix to the new aspect ratio
+    m_projection = glm::perspective(glm::radians(fov), (float)width / (float)height, 0.1f, 1000.0f);
 }
 
 
