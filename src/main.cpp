@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/noise.hpp>
 
 #include <iostream>
 #include <memory>
@@ -34,14 +35,10 @@ int main() {
     Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
     shader.use();
     
+    glm::perlin(glm::vec2(0.5f, 0.7f));
+
     World world(engine->getCameraPosLocation());
-
-
-    std::unique_ptr<Chunk> defaultChunk = std::make_unique<Chunk>();
-    defaultChunk->createRandomChunk();
-    world.world.emplace(std::make_tuple(0, 0, 0), std::move(defaultChunk));
-    
-
+    world.makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks
 
     // RENDER LOOP
     while(engine->Run()) {

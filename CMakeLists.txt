@@ -27,16 +27,11 @@ include_directories(external/glfw/include)
 add_library(glad src/glad.c)
 target_include_directories(glad PUBLIC include)
 
-# PERLIN
-add_library(perlin INTERFACE) # header only library so is an interface
-target_sources(perlin INTERFACE
-    ${PROJECT_SOURCE_DIR}/include/perlin/seamless_noise_generator_2d.h
-        ${PROJECT_SOURCE_DIR}/include/perlin/fractal_noise_generator.h
-        ${PROJECT_SOURCE_DIR}/include/perlin/perlin_noise_generator.h
-        ${PROJECT_SOURCE_DIR}/include/perlin/point.h
-        ${PROJECT_SOURCE_DIR}/include/perlin/vector.h
-        ${PROJECT_SOURCE_DIR}/include/perlin/math.h)
-target_include_directories(perlin INTERFACE include)
+# SIMPLEX
+add_library(simplex INTERFACE) # header only library so is an interface
+target_sources(simplex INTERFACE 
+    ${PROJECT_SOURCE_DIR}/include/simplex_noise/simplex.h)
+target_include_directories(simplex INTERFACE include)
 
 # OTHER
 add_library(shader src/shader.cpp)
@@ -51,6 +46,8 @@ target_include_directories(engine PUBLIC include include/glm)
 add_library(chunk src/chunk.cpp)
 target_include_directories(chunk PUBLIC include include/glm)
 
+add_library(heightmap src/heightmap.cpp)
+target_include_directories(heightmap PUBLIC include include/glm simplex)
 
 add_library(world src/world.cpp)
 target_include_directories(world PUBLIC include include/glm)
@@ -63,6 +60,7 @@ target_link_libraries(main
     shader
     texture
     chunk
+    heightmap
     world
     glfw
     glad

@@ -48,38 +48,15 @@ private:
     int indexCount;
 };
 
-
-class Chunk {
-public:
-    int x, y, z; // chunk coordinates
-    
-
-    void createBaseChunk();
-    void createRandomChunk();
-    bool isBlockAir(int x, int y, int z);
-
-    // hear for now, temporary
-    void draw() const;
-private:
-    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
-    ChunkMesh mesh; // temporary
-};
-
 class MeshData {
 public:
-    int x, y, z; // chunk coordinates
-
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
-
     MeshData() = default;
-    //MeshData(World& world); TEMPORARY REMOVING
 
     void addFace(int wx, int wy, int wz, Direction dir);
 private:
-    //World& world;
-
     // index into this array to get cube face positions 
     // works like [direction][vertex]
     const glm::vec3 cubeFacePositions[6][4] = {
@@ -118,3 +95,20 @@ private:
         {0.0f, 1.0f}
     };
 };
+
+class Chunk {
+public:
+    int x, y, z; // chunk coordinates
+    
+    Chunk(int x, int y, int z);
+
+    void createRandomChunk();
+    bool isBlockAir(int x, int y, int z);
+
+    // hear for now, temporary
+    void draw() const;
+private:
+    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
+    ChunkMesh mesh; // temporary
+};
+

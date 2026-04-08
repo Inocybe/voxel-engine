@@ -39,6 +39,7 @@ public:
     //std::atomic<bool> running = true;
 
     void update() const;
+    void makeTestingMap(int size);
 private:
     glm::vec3& cameraPos;
 

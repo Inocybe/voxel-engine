@@ -1,144 +1,6 @@
 #include <chunk.hpp>
 
 
-bool Chunk::isBlockAir(int x, int y, int z) {
-    if (x < 0 || x >= CHUNK_SIZE)   return true;
-    if (y < 0 || y >= CHUNK_SIZE)  return true;
-    if (z < 0 || z >= CHUNK_SIZE)   return true;
-    int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
-    return blocks[index].type == 0;
-}
-
-void Chunk::createBaseChunk() {
-    for (int i = 0; i < blocks.size(); i++) {
-        Block type;
-        type.type = 1;
-        blocks[i] = type;
-    }
-    MeshData meshData;
-
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int y = 0; y < CHUNK_SIZE; y++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                 int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
-                Block b = blocks[index];
-
-                // Skip air blocks entirely -- nothing to draw.
-                // "continue" jumps to the next loop iteration immediately.
-                if (b.type == 0) continue;
-
-                // Face culling -- only add a face if the neighbor is air.
-                // A face shared between two solid blocks is NEVER visible,
-                // so adding it just wastes GPU time drawing nothing.
-                // World position = chunk position * chunk size + local position.
-                int wx = x;
-                int wy = y;
-                int wz = z;
-
-                if (this->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
-                if (this->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
-                if (this->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
-                if (this->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
-                if (this->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
-                if (this->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
-            }
-        }
-    }
-
-    mesh.upload(
-        meshData.vertices.data(), 
-        meshData.vertices.size() * sizeof(Vertex), 
-        meshData.indices.data(), 
-        meshData.indices.size() * sizeof(unsigned int)
-    );
-}
-
-
-void Chunk::createRandomChunk() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(0, 3);
-    int random_number = distrib(gen);
-    for (int i = 0; i < blocks.size(); i++) {
-        int random_number = distrib(gen);
-        Block type;
-        type.type = random_number;
-        blocks[i] = type;
-    }
-    MeshData meshData;
-
-    for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int y = 0; y < CHUNK_SIZE; y++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                 int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
-                Block b = blocks[index];
-
-                // Skip air blocks entirely -- nothing to draw.
-                // "continue" jumps to the next loop iteration immediately.
-                if (b.type == 0) continue;
-
-                // Face culling -- only add a face if the neighbor is air.
-                // A face shared between two solid blocks is NEVER visible,
-                // so adding it just wastes GPU time drawing nothing.
-                // World position = chunk position * chunk size + local position.
-                int wx = x;
-                int wy = y;
-                int wz = z;
-
-                if (this->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
-                if (this->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
-                if (this->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
-                if (this->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
-                if (this->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
-                if (this->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
-            }
-        }
-    }
-
-    mesh.upload(
-        meshData.vertices.data(), 
-        meshData.vertices.size() * sizeof(Vertex), 
-        meshData.indices.data(), 
-        meshData.indices.size() * sizeof(unsigned int)
-    );
-
-}
-
-void Chunk::draw() const {
-    mesh.draw();
-}
-
-
-
-
-//MeshData::MeshData(World& world) : world(world) {} TEMPORARY
-
-
-void MeshData::addFace(int wx, int wy, int wz, Direction dir) {
-    unsigned int baseIndex = static_cast<unsigned int>(vertices.size());
-
-    // ADDING 4 VERTICES TO THE VERTICY ARRAY
-    for (int vert = 0; vert < 4; vert++) {
-        Vertex v;
-        
-        v.position = cubeFacePositions[dir][vert] + glm::vec3(wx, wy, wz);
-        v.normal = cubeFaceNormals[dir];
-        v.uv = cubeFaceUVs[vert];
-
-        vertices.push_back(v);
-    }
-
-    // ADDING 6 INDICES TO CREATE THE FACE
-    static const unsigned int faceIndices[6] = { 0, 1, 2, 2, 3, 0 };
-    for (int i = 0; i < 6; i++) {
-        indices.push_back(baseIndex + faceIndices[i]);
-    }
-}
-
-
-
-
-
 ChunkMesh::ChunkMesh() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -190,4 +52,95 @@ void ChunkMesh::draw() const {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+}
+
+
+void MeshData::addFace(int wx, int wy, int wz, Direction dir) {
+    unsigned int baseIndex = static_cast<unsigned int>(vertices.size());
+
+    // ADDING 4 VERTICES TO THE VERTICY ARRAY
+    for (int vert = 0; vert < 4; vert++) {
+        Vertex v;
+        
+        v.position = cubeFacePositions[dir][vert] + glm::vec3(wx, wy, wz);
+        v.normal = cubeFaceNormals[dir];
+        v.uv = cubeFaceUVs[vert];
+
+        vertices.push_back(v);
+    }
+
+    // ADDING 6 INDICES TO CREATE THE FACE
+    static const unsigned int faceIndices[6] = { 0, 1, 2, 2, 3, 0 };
+    for (int i = 0; i < 6; i++) {
+        indices.push_back(baseIndex + faceIndices[i]);
+    }
+}
+
+
+
+
+Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {}
+
+
+bool Chunk::isBlockAir(int x, int y, int z) {
+    if (x < 0 || x >= CHUNK_SIZE)   return false;
+    if (y < 0 || y >= CHUNK_SIZE)  return false;
+    if (z < 0 || z >= CHUNK_SIZE)   return false;
+    int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
+    return blocks[index].type == 0;
+}
+
+
+void Chunk::createRandomChunk() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(0, 3);
+    int random_number = distrib(gen);
+    for (int i = 0; i < blocks.size(); i++) {
+        int random_number = distrib(gen);
+        Block type;
+        type.type = random_number;
+        blocks[i] = type;
+    }
+    MeshData meshData;
+
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                 int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
+                Block b = blocks[index];
+
+                // Skip air blocks entirely -- nothing to draw.
+                // "continue" jumps to the next loop iteration immediately.
+                if (b.type == 0) continue;
+
+                // Face culling -- only add a face if the neighbor is air.
+                // A face shared between two solid blocks is NEVER visible,
+                // so adding it just wastes GPU time drawing nothing.
+                // World position = chunk position * chunk size + local position.
+                int wx = x + this->x * CHUNK_SIZE;
+                int wy = y + this->y * CHUNK_SIZE;
+                int wz = z + this->z * CHUNK_SIZE;
+
+                if (this->isBlockAir(x + 1, y, z)) meshData.addFace(wx, wy, wz, Direction::POS_X); // +X
+                if (this->isBlockAir(x - 1, y, z)) meshData.addFace(wx, wy, wz, Direction::NEG_X); // -X
+                if (this->isBlockAir(x, y + 1, z)) meshData.addFace(wx, wy, wz, Direction::POS_Y); // +Y
+                if (this->isBlockAir(x, y - 1, z)) meshData.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
+                if (this->isBlockAir(x, y, z + 1)) meshData.addFace(wx, wy, wz, Direction::POS_Z); // +Z
+                if (this->isBlockAir(x, y, z - 1)) meshData.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
+            }
+        }
+    }
+
+    mesh.upload(
+        meshData.vertices.data(), 
+        meshData.vertices.size() * sizeof(Vertex), 
+        meshData.indices.data(), 
+        meshData.indices.size() * sizeof(unsigned int)
+    );
+
+}
+
+void Chunk::draw() const {
+    mesh.draw();
 }
