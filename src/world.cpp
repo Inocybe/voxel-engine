@@ -19,7 +19,7 @@ void World::makeTestingMap(int size) {
                 chunk->x = x;
                 chunk->y = y;
                 chunk->z = z;
-                chunk->createRandomChunk();
+                //chunk->createRandomChunk();
                 world.emplace(std::make_tuple(x, y, z), std::move(chunk));
             }
         }
@@ -30,6 +30,6 @@ void World::makeTestingMap(int size) {
 
 void World::drawChunks() const {
     for (const auto& [location, data] : world) {
-        data->draw();
+        //data->draw();
     }
 }

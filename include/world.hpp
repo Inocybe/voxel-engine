@@ -32,7 +32,11 @@ public:
     std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<Chunk>, TupleHash> world;
     std::mutex worldMutex;
 
-    std::queue<MeshData> meshUploadQueue;
+    
+    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<ChunkMesh>, TupleHash> chunkMeshes;
+
+
+    std::queue<ChunkMesh> meshUploadQueue;
     std::mutex meshQueueMutex;
     std::condition_variable meshReadyCV;
 

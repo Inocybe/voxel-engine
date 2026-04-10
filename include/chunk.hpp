@@ -8,7 +8,10 @@
 #include <queue>
 #include <vector>
 #include <random>
+#include <iostream>
 #include <unordered_map>
+
+#include <world.hpp>
 
 constexpr int CHUNK_SIZE = 16;
 
@@ -23,43 +26,10 @@ struct Vertex {
 
 enum Direction { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
 
-
-struct Block;
-class Chunk;
-class MeshData;
-class ChunkMesh;
-class World;
-
-
-
-// if block is 0 it is air, otherwise will be just block 
-struct Block {
-    uint8_t type;
-};
-
-class ChunkMesh {
-public:
-    ChunkMesh();
-    ~ChunkMesh();
-    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
-    void draw() const;
-private:
-    unsigned int VAO, VBO, EBO;
-    int indexCount;
-};
-
-class MeshData {
-public:
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-
-    MeshData() = default;
-
-    void addFace(int wx, int wy, int wz, Direction dir);
-private:
+namespace CubeGeometry {
     // index into this array to get cube face positions 
     // works like [direction][vertex]
-    const glm::vec3 cubeFacePositions[6][4] = {
+    static constexpr glm::vec3 cubeFacePositions[6][4] = {
         // +X (right)
         { {1,0,0}, {1,1,0}, {1,1,1}, {1,0,1} },
 
@@ -79,7 +49,7 @@ private:
         { {0,1,0}, {1,1,0}, {1,0,0}, {0,0,0} }
     };
     // this one just dependant on the direction
-    const glm::vec3 cubeFaceNormals[6] = {
+    static constexpr glm::vec3 cubeFaceNormals[6] = {
         { 1,  0,  0}, // +X
         {-1,  0,  0}, // -X
         { 0,  1,  0}, // +Y
@@ -88,27 +58,56 @@ private:
         { 0,  0, -1}  // -Z
     };
     // this one dependant on the vertex
-    const glm::vec2 cubeFaceUVs[4] = {
+    static constexpr glm::vec2 cubeFaceUVs[4] = {
         {0.0f, 0.0f},
         {1.0f, 0.0f},
         {1.0f, 1.0f},
         {0.0f, 1.0f}
     };
+}
+
+// if block is 0 it is air, otherwise will be just block 
+struct Block {
+    uint8_t type;
 };
+
+
+void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
+
+
+class ChunkMesh {
+public:
+    int x, y, z; // chunk coordinates
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    ChunkMesh() = default;
+
+    void addFace(int wx, int wy, int wz, Direction dir);
+};
+
+class RenderBuffer {
+public:
+    RenderBuffer();
+    ~RenderBuffer();
+    void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
+    void uploadChunkMesh(const ChunkMesh& chunkMesh);
+    void draw() const;
+private:
+    unsigned int VAO, VBO, EBO;
+    int indexCount;
+};
+
+
 
 class Chunk {
 public:
     int x, y, z; // chunk coordinates
+    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
+
     
     Chunk(int x, int y, int z);
 
-    void createRandomChunk();
     bool isBlockAir(int x, int y, int z);
-
-    // hear for now, temporary
-    void draw() const;
-private:
-    std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
-    ChunkMesh mesh; // temporary
 };
 
