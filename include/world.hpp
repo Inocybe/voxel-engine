@@ -33,7 +33,7 @@ public:
     std::mutex worldMutex;
 
     
-    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<ChunkMesh>, TupleHash> chunkMeshes;
+    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<RenderBuffer>, TupleHash> renderBuffers; // map of chunk coordinates to render buffers, used to store the render buffers for each chunk, so that they can be drawn when needed, and also to prevent them from being deleted when the mesh worker thread finishes
 
 
     std::queue<ChunkMesh> meshUploadQueue;
@@ -42,7 +42,7 @@ public:
 
     //std::atomic<bool> running = true;
 
-    void update() const;
+    void update();
     void makeTestingMap(int size);
 private:
     glm::vec3& cameraPos;

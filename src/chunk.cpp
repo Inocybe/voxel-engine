@@ -1,4 +1,6 @@
 #include <chunk.hpp>
+#include <world.hpp>
+
 
 
 // function to be called to be run on another thread
@@ -58,6 +60,7 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
         world.meshUploadQueue.push(std::move(chunkMesh));
     }
 }
+    
 
 
 void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {

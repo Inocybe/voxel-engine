@@ -11,7 +11,9 @@
 #include <iostream>
 #include <unordered_map>
 
-#include <world.hpp>
+// FORWARD DELCARATIONS 
+class World;
+
 
 constexpr int CHUNK_SIZE = 16;
 
@@ -72,8 +74,6 @@ struct Block {
 };
 
 
-void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
-
 
 class ChunkMesh {
 public:
@@ -97,6 +97,11 @@ private:
     unsigned int VAO, VBO, EBO;
     int indexCount;
 };
+
+
+
+void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
+
 
 
 
