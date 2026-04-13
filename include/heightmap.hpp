@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <simplex.h>
+#include <simplex/simplex.h>
 
 #include <chunk.hpp>
 

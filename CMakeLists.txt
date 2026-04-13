@@ -30,7 +30,7 @@ target_include_directories(glad PUBLIC include)
 # SIMPLEX
 add_library(simplex INTERFACE) # header only library so is an interface
 target_sources(simplex INTERFACE 
-    ${PROJECT_SOURCE_DIR}/include/simplex_noise/simplex.h)
+    ${PROJECT_SOURCE_DIR}/include/simplex/simplex.h)
 target_include_directories(simplex INTERFACE include)
 
 # OTHER
