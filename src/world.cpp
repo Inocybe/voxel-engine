@@ -14,7 +14,6 @@ void World::update() {
             ChunkMesh data = std::move(meshUploadQueue.front());
             meshUploadQueue.pop();
 
-
             lock.unlock(); // unlock while processing the mesh to allow other threads to push meshes to the queue
 
             RenderBuffer renderBuffer;
@@ -29,7 +28,7 @@ void World::update() {
     }
 
 
-    // for now, just draw all the chunks in the world
+    // for now, draw all the chunks in the world
     this->drawChunks();
 }
 

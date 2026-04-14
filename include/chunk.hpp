@@ -98,11 +98,10 @@ private:
     int indexCount;
 };
 
-
-
+// function to create the chunk mesh
+// when the worker is done, uploads a chunkmesh to the meshqueue
+// in main, meshqueue generates the renderbuffer and adds it to its own map
 void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
-
-
 
 
 class Chunk {
