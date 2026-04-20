@@ -74,7 +74,6 @@ struct Block {
 };
 
 
-
 class ChunkMesh {
 public:
     int x, y, z; // chunk coordinates

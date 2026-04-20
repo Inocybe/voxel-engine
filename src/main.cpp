@@ -40,6 +40,7 @@ int main() {
     World world(engine->getCameraPosLocation());
     world.makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks
 
+    
     // RENDER LOOP
     while(engine->Run()) {
         // use matrix's unifrom location and set matrix

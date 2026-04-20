@@ -13,16 +13,38 @@ Thread::~Thread() {
 }
 
 
+/* TODO:
+I need to create a function that will make. the thread sleep until it is 
+notified by the condition vairble
+
+when it is notified, it calls a function that is while true
+while (true) {
+    first check if the tasks que is empty, if it is, skip checking the CV
+    do the cv thing, so it sleeps, when until notified
+    does the function that is inside the task, make sure to use mutex
+}
+
+*/
+
+
+
+
+
+
+
+
 // THREADPOOL IMPLEMENTATION
-ThreadPool::ThreadPool(unsigned int maxThreads) : maxThreads(maxThreads) {}
+ThreadPool::ThreadPool(unsigned int maxThreads) : maxThreads(maxThreads) {
+
+}
 
 template<typename Callable, typename... Args>
 void ThreadPool::addTask(Callable&& func, Args&&... args) {
-    if (threads.size() >= maxThreads) {
-        throw std::runtime_error("ThreadPool has reached its maximum thread count");
-    }
+    // add task to the queue
+    std::lock_guard<std::mutex> lock(taskMutex);
+    tasks.push(Task{std::forward<Callable>(func), std::array<std::any, 10>{std::forward<Args>(args)...}});
 
-    threads.emplace_back(std::forward<Callable>(func), std::forward<Args>(args)...);
+    newTaskCV.notify_one(); // notify one thread that a new task is available
 }
 
 size_t ThreadPool::getThreadCount() const {

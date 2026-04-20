@@ -5,17 +5,16 @@
 #include <glm/glm.hpp>
 #include <simplex/simplex.h>
 
-#include <chunk.hpp>
+struct Block;
 
 class Heightmap {
 public:
     int seed1 = 42;
-    int seed2 = 1337;
-    int MIN_2D_NOISE_HEIGHT = 0;
-    int MAX_2D_NOISE_HEIGHT = 100;
+    int seed2 = 13370;
+    int big_height_scale = 40;
+    int small_height_scale = 6;
     
-    Heightmap();
-
+    Block getBlock(int x, int y, int z) const;
 private:
 
     void getBigDetails();
