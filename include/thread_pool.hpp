@@ -8,22 +8,27 @@
 #include <functional>
 #include <condition_variable>
 
+
+class ThreadPool; // forward declaration
+
+
 struct Task {
-    std::function<void(std::vector<std::any>&)> func; // function to be executed, takes a vector of any type as arguments
+    std::function<void(std::array<std::any, 10>&)> func; // function to be executed, takes a vector of any type as arguments
     std::array<std::any, 10> args; // up to 10 arguments, can be any type
 };
 
 class Thread {
 public:
-    Thread() = default;
-    template<typename Callable, typename... Args>
-    Thread(Callable&& func, Args&&... args);
+    Thread(ThreadPool* pool);
     ~Thread();
 
 private:
     std::thread thread;
+    ThreadPool* pool; // pointer to the thread pool that this thread belongs to
 
     bool operation_completed = false; // flag to indicate if the operation is completed
+
+    void pool_worker(); // function that the thread will execute, it will wait for tasks and execute them
 };
 
 
@@ -38,6 +43,7 @@ public:
 
     ThreadPool() = default;
     ThreadPool(unsigned int maxThreads);
+    //~ThreadPool();
 
     template<typename Callable, typename... Args>
     void addTask(Callable&& func, Args&&... args);

@@ -2,9 +2,8 @@
 
 
 // THREAD IMPLEMENTATION
-template<typename Callable, typename... Args>
-Thread::Thread(Callable&& func, Args&&... args) {
-    thread = std::thread(std::forward<Callable>(func), std::forward<Args>(args)...);
+Thread::Thread(ThreadPool* pool) : pool(pool) {
+    thread = std::thread(&Thread::pool_worker, this);
 }
 Thread::~Thread() {
     if (thread.joinable()) {
@@ -12,6 +11,23 @@ Thread::~Thread() {
     }
 }
 
+
+
+void Thread::pool_worker() {
+    while (true) {
+        Task task;
+        {
+            std::unique_lock<std::mutex> lock(pool->taskMutex);
+            pool->newTaskCV.wait(lock, [this] { return !pool->tasks.empty(); }); // wait until there is a task
+
+            task = std::move(pool->tasks.front());
+            pool->tasks.pop();
+        }
+
+        // execute the task function with the provided arguments
+        task.func(task.args);
+    }
+}
 
 /* TODO:
 I need to create a function that will make. the thread sleep until it is 
@@ -31,12 +47,14 @@ while (true) {
 
 
 
-
-
 // THREADPOOL IMPLEMENTATION
 ThreadPool::ThreadPool(unsigned int maxThreads) : maxThreads(maxThreads) {
-
+    for (unsigned int i = 0; i < maxThreads; ++i) {
+        threads.emplace_back(Thread(this));
+    }
 }
+//ThreadPool::~ThreadPool() { }
+
 
 template<typename Callable, typename... Args>
 void ThreadPool::addTask(Callable&& func, Args&&... args) {
