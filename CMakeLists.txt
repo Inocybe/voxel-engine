@@ -1,70 +1,66 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
-
-if(WIN32 AND NOT DEFINED CMAKE_GENERATOR)
-    set(CMAKE_GENERATOR "MinGW Makefiles" CACHE STRING "CMake generator" FORCE)
-endif()
-
-
-if(NOT CMAKE_C_COMPILER)
-    set(CMAKE_C_COMPILER clang)
-endif()
-if(NOT CMAKE_CXX_COMPILER)
-    set(CMAKE_CXX_COMPILER clang++)
-endif()
-
-
-project(LearnOpenGL)
-
+project(VoxelEngine)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # GLFW
 add_subdirectory(external/glfw)
-include_directories(external/glfw/include)
 
 # GLAD
-add_library(glad src/glad.c)
+add_library(glad STATIC src/glad.c)
 target_include_directories(glad PUBLIC include)
+
+# GLM
+add_library(glm INTERFACE)
+target_include_directories(glm INTERFACE include/glm)
 
 # SIMPLEX
 add_library(simplex INTERFACE) # header only library so is an interface
 target_sources(simplex INTERFACE 
     ${PROJECT_SOURCE_DIR}/include/simplex/simplex.h)
-target_include_directories(simplex INTERFACE include)
+target_include_directories(simplex INTERFACE include/simplex)
 
-# OTHER
+
+# ENGINE LIBRARIES
 add_library(shader src/shader.cpp)
-target_include_directories(shader PUBLIC include include/glm)
+target_include_directories(shader PUBLIC include)
+target_link_libraries(shader PUBLIC glm glad)
 
 add_library(texture src/texture.cpp)
-target_include_directories(texture PUBLIC include include/glm)
-
-add_library(engine src/engine.cpp)
-target_include_directories(engine PUBLIC include include/glm)
+target_include_directories(texture PUBLIC include)
+target_link_libraries(texture PUBLIC glm glad)
 
 add_library(chunk src/chunk.cpp)
-target_include_directories(chunk PUBLIC include include/glm)
+target_include_directories(chunk PUBLIC include)
+target_link_libraries(chunk PUBLIC glm)
 
 add_library(heightmap src/heightmap.cpp)
-target_include_directories(heightmap PUBLIC include include/glm simplex)
+target_include_directories(heightmap PUBLIC include)
+target_link_libraries(heightmap PUBLIC glm simplex)
+
+add_library(thread_pool src/thread_pool.cpp)
+target_include_directories(thread_pool PUBLIC include)
+
+add_library(player src/player.cpp)
+target_include_directories(player PUBLIC include)
+target_link_libraries(player PUBLIC glm)
 
 add_library(world src/world.cpp)
-target_include_directories(world PUBLIC include include/glm)
+target_include_directories(world PUBLIC include)
+target_link_libraries(world PUBLIC glm chunk heightmap)
+
+add_library(engine src/engine.cpp)
+target_include_directories(engine PUBLIC include)
+target_link_libraries(engine PUBLIC glm glad glfw shader texture world player thread_pool)
 
 #include_directories(external/glfw/include include include/glm)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main
-    engine
-    shader
-    texture
-    chunk
-    heightmap
-    world
-    glfw
-    glad
-    ${CMAKE_DL_LIBS})
+target_link_libraries(main PRIVATE engine ${CMAKE_DL_LIBS})
 
 
 # TO RUN: cmake .. --preset mingw-clang
+
+# or cmake -B build --preset mingw-clang && cmake --build build
