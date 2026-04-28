@@ -30,7 +30,6 @@ struct TupleHash {
 
 class World {
 public:
-    World(glm::vec3& cameraPos);
     std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<Chunk>, TupleHash> world;
     std::mutex worldMutex;
     // variables for uploading chunks to world mesh 
@@ -45,6 +44,10 @@ public:
 
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
+
+    ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
+
+    World(glm::vec3& cameraPos);
 
 
     void update();

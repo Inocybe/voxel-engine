@@ -2,6 +2,10 @@
 
 Player::Player(glm::vec3& cameraPos) : pos(cameraPos) {}
 
+void Player::update() {
+    
+}
+
 glm::ivec3 Player::getChunkCoords() const {
     return glm::ivec3(pos) / 16;
 }

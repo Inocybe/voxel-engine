@@ -35,12 +35,11 @@ int main() {
     Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
     shader.use();
     
-    glm::perlin(glm::vec2(0.5f, 0.7f));
 
     World world(engine->getCameraPosLocation());
     world.makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks
-
     
+
     // RENDER LOOP
     while(engine->Run()) {
         // use matrix's unifrom location and set matrix
