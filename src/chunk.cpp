@@ -26,6 +26,7 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int z = 0; z < CHUNK_SIZE; z++) {
+                    printf("Processing block at local position: %d, %d, %d\n", x, y, z);
                     int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
                     Block b = chunk.blocks[index];
 
@@ -52,8 +53,6 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
         }
     }
 
-
-
     // lock the mesh queue mutex to provent data from reading at the same time
     {
         std::lock_guard<std::mutex> lock(world.meshQueueMutex);
@@ -69,11 +68,9 @@ void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {
     // ADDING 4 VERTICES TO THE VERTICY ARRAY
     for (int vert = 0; vert < 4; vert++) {
         Vertex v;
-        
         v.position = CubeGeometry::cubeFacePositions[dir][vert] + glm::vec3(wx, wy, wz);
         v.normal = CubeGeometry::cubeFaceNormals[dir];
         v.uv = CubeGeometry::cubeFaceUVs[vert];
-
         vertices.push_back(v);
     }
 

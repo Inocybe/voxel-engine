@@ -111,6 +111,15 @@ public:
     
     Chunk(int x, int y, int z);
 
+    void createRandomChunk() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 1);
+
+        for (auto& block : blocks) {
+            block.type = dis(gen); // Randomly assign block type 0 (air) or 1 (solid)
+        }
+    }
     bool isBlockAir(int x, int y, int z);
 };
 

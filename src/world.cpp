@@ -6,7 +6,7 @@ World::World(glm::vec3& cameraPos) : cameraPos(cameraPos) {
 
 
     this->makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
-    meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), glm::ivec3(0, 2, -4)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
+    meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), glm::ivec3(0, 0, 0)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
 };
 
 
@@ -49,7 +49,7 @@ void World::makeTestingMap(int size) {
         for (int y = -size; y <= size; y++) {
             for (int z = -size; z <= size; z++) {
                 std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(x, y, z);
-                //chunk->createRandomChunk();
+                chunk->createRandomChunk();
                 world.emplace(std::make_tuple(x, y, z), std::move(chunk));
             }
         }
