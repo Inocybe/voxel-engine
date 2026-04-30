@@ -23,13 +23,6 @@ target_sources(simplex INTERFACE
     ${PROJECT_SOURCE_DIR}/include/simplex/simplex.h)
 target_include_directories(simplex INTERFACE include/simplex)
 
-# MY THREAD POOL
-add_library(thread_pool INTERFACE) # header only library so is an interface
-target_sources(thread_pool INTERFACE 
-    ${PROJECT_SOURCE_DIR}/include/thread_pool.hpp)
-target_include_directories(thread_pool INTERFACE include)
-
-
 # ENGINE LIBRARIES
 add_library(shader src/shader.cpp)
 target_include_directories(shader PUBLIC include)
@@ -47,8 +40,8 @@ add_library(heightmap src/heightmap.cpp)
 target_include_directories(heightmap PUBLIC include)
 target_link_libraries(heightmap PUBLIC glm simplex)
 
-#add_library(thread_pool src/thread_pool.cpp)
-#target_include_directories(thread_pool PUBLIC include)
+add_library(thread_pool src/thread_pool.cpp)
+target_include_directories(thread_pool PUBLIC include)
 
 add_library(player src/player.cpp)
 target_include_directories(player PUBLIC include)

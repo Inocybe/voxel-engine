@@ -87,7 +87,10 @@ void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {
 
 
 
-Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {}
+Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {
+    // Default test chunk contents to solid so mesh generation has visible faces.
+    blocks.fill(Block{1});
+}
 
 
 bool Chunk::isBlockAir(int x, int y, int z) {

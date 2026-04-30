@@ -34,6 +34,9 @@ screen_height(screenHeight), screen_width(screenWidth) {
     // SETTING SCROLL FUNCTION
     glfwSetScrollCallback(window, Engine::scroll_callback); 
 
+    // Initialize viewport/projection for the initial framebuffer size.
+    on_framebuffer_size(window, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 

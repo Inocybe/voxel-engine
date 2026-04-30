@@ -37,7 +37,6 @@ int main() {
     
 
     World world(engine->getCameraPosLocation());
-    world.makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks
     
 
     // RENDER LOOP
@@ -51,7 +50,6 @@ int main() {
 
 
         world.update();        
-
 
         glm::mat4 model = glm::mat4(1.0f);
         shader.setMat4("model", model);
