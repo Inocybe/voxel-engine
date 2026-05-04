@@ -35,7 +35,9 @@ screen_height(screenHeight), screen_width(screenWidth) {
     glfwSetScrollCallback(window, Engine::scroll_callback); 
 
     // Initialize viewport/projection for the initial framebuffer size.
-    on_framebuffer_size(window, static_cast<int>(screenWidth), static_cast<int>(screenHeight));
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+    on_framebuffer_size(window, fbWidth, fbHeight);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -114,6 +116,8 @@ void Engine::mouse_callback(GLFWwindow* windowInstance, double xpos, double ypos
     if (engine) engine->on_mouse_move(windowInstance, xpos, ypos);
 }
 void Engine::on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos) {
+    if (!isMouseCaptured) return;
+
     if (firstMouse) {
         lastX = xpos;
         lastY = ypos;
@@ -154,8 +158,17 @@ void Engine::calculate_delta() {
 
 
 void Engine::process_input() {
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        isMouseCaptured = false;
+        firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
+        //glfwSetWindowShouldClose(window, true);
+    }
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        isMouseCaptured = true;
+        firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
+    }
     // camera movement
     const float normalCameraSpeed = 5.0f * deltaTime;
     const float fastCameraSpeed = normalCameraSpeed * 20.0f;
