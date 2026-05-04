@@ -26,14 +26,19 @@ void World::update() {
             ChunkMesh data = std::move(meshUploadQueue.front());
             meshUploadQueue.pop();
 
-            lock.unlock(); // unlock while processing the mesh to allow other threads to push meshes to the queue
+            for (int i = 0; i < data.vertices.size(); i++) {
+                printf("Vertex %d: Position: %f, %f, %f Normal: %f, %f, %f UV: %f, %f\n", i, data.vertices[i].position.x, data.vertices[i].position.y, data.vertices[i].position.z, data.vertices[i].normal.x, data.vertices[i].normal.y, data.vertices[i].normal.z, data.vertices[i].uv.x, data.vertices[i].uv.y);
+            }
 
-            RenderBuffer renderBuffer;
-            renderBuffer.uploadChunkMesh(data);
+
+            lock.unlock(); // unlock while processing the mesh to allow other threads to push meshes to the queue
+            
+            std::unique_ptr<RenderBuffer> renderBuffer = std::make_unique<RenderBuffer>();
 
             // adding the render buffer to the map of render buffers, so that it can be drawn when needed, 
             // also to prevent it from being deleted when the mesh worker thread finishes
-            renderBuffers.emplace(std::make_tuple(data.x, data.y, data.z), std::make_unique<RenderBuffer>(std::move(renderBuffer)));
+            renderBuffers.emplace(std::make_tuple(data.x, data.y, data.z), std::move(renderBuffer));
+            renderBuffers[std::make_tuple(data.x, data.y, data.z)]->uploadChunkMesh(data);
 
             lock.lock(); // lock again to check the queue condition
         }

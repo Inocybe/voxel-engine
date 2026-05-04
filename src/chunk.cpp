@@ -91,9 +91,9 @@ Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {
 
 
 bool Chunk::isBlockAir(int x, int y, int z) {
-    if (x < 0 || x >= CHUNK_SIZE)   return false;
-    if (y < 0 || y >= CHUNK_SIZE)  return false;
-    if (z < 0 || z >= CHUNK_SIZE)   return false;
+    if (x < 0 || x >= CHUNK_SIZE)   return true;
+    if (y < 0 || y >= CHUNK_SIZE)  return true;
+    if (z < 0 || z >= CHUNK_SIZE)   return true;
     int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
     return blocks[index].type == 0;
 }
