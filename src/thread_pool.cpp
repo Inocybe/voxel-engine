@@ -25,7 +25,7 @@ void Thread::pool_worker() {
             }
 
             task = std::move(pool->tasks.front());
-            std::cout << "Thread " << std::this_thread::get_id() << " executing task\n";
+            //std::cout << "Thread " << std::this_thread::get_id() << " executing task\n";
             pool->tasks.pop();
         }
 

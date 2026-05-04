@@ -5,7 +5,7 @@
 Player::Player(glm::vec3& cameraPos) : pos(cameraPos) {}
 
 void Player::update() {
-    printf("Player position: %f, %f, %f\n", pos.x, pos.y, pos.z);
+    //printf("Player position: %f, %f, %f\n", pos.x, pos.y, pos.z);
 }
 
 glm::ivec3 Player::getChunkCoords() const {

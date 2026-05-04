@@ -57,4 +57,8 @@ private:
 
     void drawChunks() const;
     void updateChunkGenerationQueue();
+
+    glm::ivec3 tupleToVec3i(const std::tuple<int, int, int>& t) const {
+        return glm::ivec3(std::get<0>(t), std::get<1>(t), std::get<2>(t));
+    }
 };

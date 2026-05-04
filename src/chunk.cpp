@@ -26,7 +26,6 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int z = 0; z < CHUNK_SIZE; z++) {
-                    printf("Processing block at local position: %d, %d, %d\n", x, y, z);
                     int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
                     Block b = chunk.blocks[index];
 

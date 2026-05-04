@@ -87,6 +87,8 @@ public:
 
 class RenderBuffer {
 public:
+    int indexCount;
+
     RenderBuffer();
     ~RenderBuffer();
     void upload(const Vertex* vertices, size_t vertexBytes, const unsigned int* indices, size_t indexBytes);
@@ -94,7 +96,6 @@ public:
     void draw() const;
 private:
     unsigned int VAO, VBO, EBO;
-    int indexCount;
 };
 
 // function to create the chunk mesh

@@ -5,8 +5,11 @@ World::World(glm::vec3& cameraPos) : cameraPos(cameraPos) {
     player = std::make_unique<Player>(cameraPos);
 
 
-    this->makeTestingMap(4); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
-    meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), glm::ivec3(0, 0, 0)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
+    this->makeTestingMap(16); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
+    for (const auto& [location, data] : world) {
+        meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), tupleToVec3i(location)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
+    }
+    //meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), glm::ivec3(0, 0, 0)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
 };
 
 
@@ -22,14 +25,10 @@ void World::update() {
         std::unique_lock<std::mutex> lock(meshQueueMutex);
         
         while(!meshUploadQueue.empty()) {
-            printf("Processing mesh upload queue, %zu meshes to upload\n", meshUploadQueue.size());
             ChunkMesh data = std::move(meshUploadQueue.front());
             meshUploadQueue.pop();
 
-            for (int i = 0; i < data.vertices.size(); i++) {
-                printf("Vertex %d: Position: %f, %f, %f Normal: %f, %f, %f UV: %f, %f\n", i, data.vertices[i].position.x, data.vertices[i].position.y, data.vertices[i].position.z, data.vertices[i].normal.x, data.vertices[i].normal.y, data.vertices[i].normal.z, data.vertices[i].uv.x, data.vertices[i].uv.y);
-            }
-
+        
 
             lock.unlock(); // unlock while processing the mesh to allow other threads to push meshes to the queue
             
@@ -64,9 +63,12 @@ void World::makeTestingMap(int size) {
 
 
 void World::drawChunks() const {
+    int count = 0;
     for (const auto& [location, data] : renderBuffers) {
+        count+= data->indexCount / 6; // each face has 6 indices, so divide by 6 to get the number of faces, this is just for testing to see how many faces are being drawn, and to make sure that the face culling is working correctly, since it should be drawing less than the total number of blocks in the world
         data->draw();
     }
+    std::cout << "Total faces drawn: " << count << std::endl;
 }
 
 
