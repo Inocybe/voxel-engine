@@ -19,9 +19,9 @@ constexpr int CHUNK_SIZE = 16;
 
 #pragma pack(push, 1)
 struct Vertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 uv;
+    uint8_t x, y, z; // local pos 0-15 within the chunk, using 4 bits each, so we can fit all three into a single uint8_t
+    uint8_t normal; // only 6 directions
+    uint8_t u, v;
 };
 #pragma pack(pop)
 

@@ -4,6 +4,9 @@
 World::World(glm::vec3& cameraPos) : cameraPos(cameraPos) {
     player = std::make_unique<Player>(cameraPos);
 
+    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
+    shader.use();
+
 
     this->makeTestingMap(16); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
     for (const auto& [location, data] : world) {
@@ -63,12 +66,10 @@ void World::makeTestingMap(int size) {
 
 
 void World::drawChunks() const {
-    int count = 0;
     for (const auto& [location, data] : renderBuffers) {
-        count+= data->indexCount / 6; // each face has 6 indices, so divide by 6 to get the number of faces, this is just for testing to see how many faces are being drawn, and to make sure that the face culling is working correctly, since it should be drawing less than the total number of blocks in the world
+
         data->draw();
     }
-    std::cout << "Total faces drawn: " << count << std::endl;
 }
 
 

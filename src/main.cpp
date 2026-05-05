@@ -32,9 +32,6 @@ int main() {
         return -1;
     }
 
-    Shader shader("../shaders/shader.vs", "../shaders/shader.fs");
-    shader.use();
-    
 
     World world(engine->getCameraPosLocation());
     
