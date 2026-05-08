@@ -32,25 +32,31 @@ int main() {
         return -1;
     }
 
+    std::unique_ptr<Shader> shader = std::make_unique<Shader>("../shaders/shader.vs", "../shaders/shader.fs");
+    shader->use();
 
-    World world(engine->getCameraPosLocation());
-    
+
+    World world(engine->getCameraPosLocation(), shader.get());
 
     // RENDER LOOP
     while(engine->Run()) {
-        // use matrix's unifrom location and set matrix
-        shader.use();
+        shader->use();
+
 
         // Set view and projection and position
-        shader.setMat4("view", engine->GetViewMatrix());
-        shader.setMat4("projection", engine->GetProjectionMatrix());
-
+        shader->setMat4("view", engine->GetViewMatrix());
+        shader->setMat4("projection", engine->GetProjectionMatrix());
 
         world.update();        
 
-        glm::mat4 model = glm::mat4(1.0f);
-        shader.setMat4("model", model);
 
+        glm::mat4 model = glm::mat4(1.0f);
+        shader->setMat4("model", model);
+
+
+
+
+        
         engine->EndFrame();
     }
     

@@ -117,13 +117,13 @@ RenderBuffer::RenderBuffer() {
 
     size_t stride = sizeof(Vertex);
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, x));
+    glVertexAttribIPointer(0, 3, GL_UNSIGNED_BYTE, stride, (void*)offsetof(Vertex, x));
     glEnableVertexAttribArray(0);
     // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(1, 1, GL_UNSIGNED_BYTE, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
     // uv
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)offsetof(Vertex, u));
+    glVertexAttribPointer(2, 2, GL_UNSIGNED_BYTE, GL_FALSE, stride, (void*)offsetof(Vertex, u));
     glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);

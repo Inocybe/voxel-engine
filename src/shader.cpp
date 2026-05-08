@@ -100,6 +100,7 @@ void Shader::setInt(const std::string &name, int value) const{
 void Shader::setFloat(const std::string &name, float value) const{
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
+/*
 template <typename... Args>
 void Shader::setVec3(const std::string &name, const Args... args) const {
     if constexpr (sizeof...(args) == 1) {
@@ -110,7 +111,7 @@ void Shader::setVec3(const std::string &name, const Args... args) const {
     } else {
         static_assert(sizeof...(args) == 1 || sizeof...(args) == 3, "setVec3 requires either a glm::vec3 or three float arguments");
     }
-}
+}*/
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const{
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }

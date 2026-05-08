@@ -12,9 +12,9 @@
 #include <unordered_map>
 
 #include <thread_pool.hpp>
+#include <shader.hpp>
 #include <player.hpp>
 #include <chunk.hpp>
-
 
 
 
@@ -47,13 +47,14 @@ public:
 
     ThreadPool meshWorkerThreadPool{1}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
 
-    World(glm::vec3& cameraPos);
+    World(glm::vec3& cameraPos, Shader* shader);
 
 
     void update();
     void makeTestingMap(int size);
 private:
     glm::vec3& cameraPos;
+    std::unique_ptr<Shader> shader;
 
     void drawChunks() const;
     void updateChunkGenerationQueue();
