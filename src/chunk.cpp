@@ -64,12 +64,16 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
 void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {
     unsigned int baseIndex = static_cast<unsigned int>(vertices.size());
 
+    int lx = wx - (this->x * CHUNK_SIZE);
+    int ly = wy - (this->y * CHUNK_SIZE);
+    int lz = wz - (this->z * CHUNK_SIZE);
+
     // ADDING 4 VERTICES TO THE VERTICY ARRAY
     for (int vert = 0; vert < 4; vert++) {
         Vertex v;
-        v.x = (uint8_t)(wx + CubeGeometry::cubeFacePositions[dir][vert].x);
-        v.y = (uint8_t)(wy + CubeGeometry::cubeFacePositions[dir][vert].y);
-        v.z = (uint8_t)(wz + CubeGeometry::cubeFacePositions[dir][vert].z);
+        v.x = (uint8_t)(lx + CubeGeometry::cubeFacePositions[dir][vert].x);
+        v.y = (uint8_t)(ly + CubeGeometry::cubeFacePositions[dir][vert].y);
+        v.z = (uint8_t)(lz + CubeGeometry::cubeFacePositions[dir][vert].z);
         v.normal = (uint8_t)dir;
         v.u = (uint8_t)CubeGeometry::cubeFaceUVs[vert].x;
         v.v = (uint8_t)CubeGeometry::cubeFaceUVs[vert].y;
@@ -120,7 +124,7 @@ RenderBuffer::RenderBuffer() {
     glVertexAttribIPointer(0, 3, GL_UNSIGNED_BYTE, stride, (void*)offsetof(Vertex, x));
     glEnableVertexAttribArray(0);
     // normal
-    glVertexAttribPointer(1, 1, GL_UNSIGNED_BYTE, GL_FALSE, stride, (void*)offsetof(Vertex, normal));
+    glVertexAttribIPointer(1, 1, GL_UNSIGNED_BYTE, stride, (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
     // uv
     glVertexAttribPointer(2, 2, GL_UNSIGNED_BYTE, GL_FALSE, stride, (void*)offsetof(Vertex, u));

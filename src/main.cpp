@@ -38,6 +38,7 @@ int main() {
 
     World world(engine->getCameraPosLocation(), shader.get());
 
+    
     // RENDER LOOP
     while(engine->Run()) {
         shader->use();
