@@ -33,13 +33,13 @@ add_library(texture src/texture.cpp)
 target_include_directories(texture PUBLIC include)
 target_link_libraries(texture PUBLIC glm glad)
 
-add_library(chunk src/chunk.cpp)
-target_include_directories(chunk PUBLIC include)
-target_link_libraries(chunk PUBLIC glm)
-
 add_library(heightmap src/heightmap.cpp)
 target_include_directories(heightmap PUBLIC include)
 target_link_libraries(heightmap PUBLIC glm simplex)
+
+add_library(chunk src/chunk.cpp)
+target_include_directories(chunk PUBLIC include)
+target_link_libraries(chunk PUBLIC glm heightmap)
 
 add_library(thread_pool src/thread_pool.cpp)
 target_include_directories(thread_pool PUBLIC include)

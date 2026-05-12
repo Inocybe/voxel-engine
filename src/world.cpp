@@ -7,8 +7,7 @@ World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shade
     //shader = std::make_unique<Shader>("../shaders/shader.vs", "../shaders/shader.fs");
     shader->use();
 
-
-    this->makeTestingMap(14); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
+    this->makeTestingMap(20); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
     for (const auto& [location, data] : world) {
         meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), tupleToVec3i(location)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
     }
@@ -49,11 +48,13 @@ void World::update() {
 
 
 void World::makeTestingMap(int size) {
+    Heightmap heightmap;
+
     for (int x = -size; x <= size; x++) {
-        for (int y = -size; y <= size; y++) {
+        for (int y = -size/4; y <= size/4; y++) {
             for (int z = -size; z <= size; z++) {
                 std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(x, y, z);
-                chunk->createRandomChunk();
+                chunk->createChunk(heightmap);
                 world.emplace(std::make_tuple(x, y, z), std::move(chunk));
             }
         }

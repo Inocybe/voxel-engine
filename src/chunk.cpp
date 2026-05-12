@@ -1,6 +1,6 @@
 #include <chunk.hpp>
 #include <world.hpp>
-
+#include <heightmap.hpp>
 
 
 // function to be called to be run on another thread
@@ -41,12 +41,12 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
                     int wy = y + chunkPos.y * CHUNK_SIZE;
                     int wz = z + chunkPos.z * CHUNK_SIZE;
 
-                    if (chunk.isBlockAir(x + 1, y, z)) chunkMesh.addFace(wx, wy, wz, Direction::POS_X); // +X
-                    if (chunk.isBlockAir(x - 1, y, z)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_X); // -X
-                    if (chunk.isBlockAir(x, y + 1, z)) chunkMesh.addFace(wx, wy, wz, Direction::POS_Y); // +Y
-                    if (chunk.isBlockAir(x, y - 1, z)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
-                    if (chunk.isBlockAir(x, y, z + 1)) chunkMesh.addFace(wx, wy, wz, Direction::POS_Z); // +Z
-                    if (chunk.isBlockAir(x, y, z - 1)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
+                    if (chunk.isBlockAir(world, x + 1, y, z)) chunkMesh.addFace(wx, wy, wz, Direction::POS_X); // +X
+                    if (chunk.isBlockAir(world, x - 1, y, z)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_X); // -X
+                    if (chunk.isBlockAir(world, x, y + 1, z)) chunkMesh.addFace(wx, wy, wz, Direction::POS_Y); // +Y
+                    if (chunk.isBlockAir(world, x, y - 1, z)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_Y); // -Y
+                    if (chunk.isBlockAir(world, x, y, z + 1)) chunkMesh.addFace(wx, wy, wz, Direction::POS_Z); // +Z
+                    if (chunk.isBlockAir(world, x, y, z - 1)) chunkMesh.addFace(wx, wy, wz, Direction::NEG_Z); // -Z
                 }
             }
         }
@@ -96,12 +96,55 @@ Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {
 }
 
 
-bool Chunk::isBlockAir(int x, int y, int z) {
-    if (x < 0 || x >= CHUNK_SIZE)   return true;
-    if (y < 0 || y >= CHUNK_SIZE)  return true;
-    if (z < 0 || z >= CHUNK_SIZE)   return true;
+void Chunk::createChunk(Heightmap& heightmap) {
+    for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                int wx = x + this->x * CHUNK_SIZE;
+                int wy = y + this->y * CHUNK_SIZE;
+                int wz = z + this->z * CHUNK_SIZE;
+
+                blocks[x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE] = heightmap.getBlock(wx, wy, wz);
+            }
+        }
+    }
+}
+
+bool Chunk::isBlockAir(World& world, int x, int y, int z) {
+    if (x < 0 || x >= CHUNK_SIZE) return this->isBlockAirOtherChunk(world, x, y, z);
+    if (y < 0 || y >= CHUNK_SIZE) return this->isBlockAirOtherChunk(world, x, y, z);
+    if (z < 0 || z >= CHUNK_SIZE) return this->isBlockAirOtherChunk(world, x, y, z);
     int index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
     return blocks[index].type == 0;
+}
+
+bool Chunk::isBlockAirOtherChunk(World& world, int x, int y, int z) {
+    int neighborChunkX = this->x;
+    int neighborChunkY = this->y;
+    int neighborChunkZ = this->z;
+
+    if (x < 0) neighborChunkX -= 1;
+    else if (x >= CHUNK_SIZE) neighborChunkX += 1;
+
+    if (y < 0) neighborChunkY -= 1;
+    else if (y >= CHUNK_SIZE) neighborChunkY += 1;
+
+    if (z < 0) neighborChunkZ -= 1;
+    else if (z >= CHUNK_SIZE) neighborChunkZ += 1;
+
+    auto it = world.world.find(std::make_tuple(neighborChunkX, neighborChunkY, neighborChunkZ));
+    if (it == world.world.end()) {
+        // If the neighboring chunk doesn't exist, we can treat it as air for face culling purposes.
+        return true;
+    }
+    Chunk& neighborChunk = *(it->second);
+
+    // Calculate local coordinates within the neighboring chunk
+    int localX = (x + CHUNK_SIZE) % CHUNK_SIZE; // Wrap around to get local coordinate
+    int localY = (y + CHUNK_SIZE) % CHUNK_SIZE; // Wrap around to get local coordinate
+    int localZ = (z + CHUNK_SIZE) % CHUNK_SIZE; // Wrap around to get local coordinate
+
+    return neighborChunk.isBlockAir(world, localX, localY, localZ);
 }
 
 

@@ -13,6 +13,7 @@
 
 #include <thread_pool.hpp>
 #include <shader.hpp>
+#include <heightmap.hpp>
 #include <player.hpp>
 #include <chunk.hpp>
 

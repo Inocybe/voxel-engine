@@ -13,7 +13,7 @@
 
 // FORWARD DELCARATIONS 
 class World;
-
+class Heightmap;
 
 constexpr int CHUNK_SIZE = 16;
 
@@ -121,6 +121,10 @@ public:
             block.type = dis(gen); // Randomly assign block type 0 (air) or 1 (solid)
         }
     }
-    bool isBlockAir(int x, int y, int z);
+
+    void createChunk(Heightmap& heightmap); // create a chunk based on the heightmap, this will be used to generate the world based on the heightmap, and also to regenerate chunks when they are updated, for example when the player mines a block, we can regenerate the chunk to update the mesh data, this will be done by calling this function again with the updated heightmap data, which will then update the blocks in the chunk accordingly
+    bool isBlockAir(World& world, int x, int y, int z);
+private:
+    bool isBlockAirOtherChunk(World& world, int x, int y, int z); // check if the block at the given coordinates is air, this will be used for face culling when generating the mesh data, if the block is air then we need to add a face for it, otherwise we can skip it, this function will also check the neighboring chunks if the coordinates are out of bounds, for example if x is -1 then we need to check the chunk at (x-1, y, z) to see if the block there is air or not
 };
 
