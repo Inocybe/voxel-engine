@@ -7,7 +7,7 @@ World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shade
     //shader = std::make_unique<Shader>("../shaders/shader.vs", "../shaders/shader.fs");
     shader->use();
 
-    this->makeTestingMap(20); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
+    this->makeTestingMap(40); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
     for (const auto& [location, data] : world) {
         meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), tupleToVec3i(location)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
     }
@@ -19,15 +19,17 @@ World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shade
 void World::update() {
     player->update();
 
+    int maxMeshUploadsPerFrame = 50; // Limit the number of mesh uploads per frame to prevent stuttering
+    int uploadsThisFrame = 0;
+
     // render and add the meshes from the meshqueue
     {
         std::unique_lock<std::mutex> lock(meshQueueMutex);
         
-        while(!meshUploadQueue.empty()) {
+        while(!meshUploadQueue.empty() && uploadsThisFrame < maxMeshUploadsPerFrame) {
             ChunkMesh data = std::move(meshUploadQueue.front());
             meshUploadQueue.pop();
-
-        
+            uploadsThisFrame++;
 
             lock.unlock(); // unlock while processing the mesh to allow other threads to push meshes to the queue
             
@@ -51,7 +53,7 @@ void World::makeTestingMap(int size) {
     Heightmap heightmap;
 
     for (int x = -size; x <= size; x++) {
-        for (int y = -size/4; y <= size/4; y++) {
+        for (int y = -size/7; y <= size/7; y++) {
             for (int z = -size; z <= size; z++) {
                 std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(x, y, z);
                 chunk->createChunk(heightmap);

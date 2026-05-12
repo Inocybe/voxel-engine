@@ -46,7 +46,7 @@ public:
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
 
-    ThreadPool meshWorkerThreadPool{1}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
+    ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
 
     World(glm::vec3& cameraPos, Shader* shader);
 
