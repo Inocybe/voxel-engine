@@ -7,7 +7,7 @@ World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shade
     //shader = std::make_unique<Shader>("../shaders/shader.vs", "../shaders/shader.fs");
     shader->use();
 
-    this->makeTestingMap(40); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
+    this->makeTestingMap(); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
     for (const auto& [location, data] : world) {
         meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), tupleToVec3i(location)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
     }
@@ -49,12 +49,15 @@ void World::update() {
 }
 
 
-void World::makeTestingMap(int size) {
+void World::makeTestingMap() {
     Heightmap heightmap;
 
-    for (int x = -size; x <= size; x++) {
-        for (int y = -size/7; y <= size/7; y++) {
-            for (int z = -size; z <= size; z++) {
+    for (int x = -PlayerDistance::RENDER_DISTANCE; x <= PlayerDistance::RENDER_DISTANCE; x++) {
+        for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT; y++) {
+            for (int z = -PlayerDistance::RENDER_DISTANCE; z <= PlayerDistance::RENDER_DISTANCE; z++) {
+                if (!player->isChunkInRenderDistance(glm::ivec3(x, y, z))) {
+                    continue; // Skip generating chunks that are outside the player's render distance
+                }
                 std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(x, y, z);
                 chunk->createChunk(heightmap);
                 world.emplace(std::make_tuple(x, y, z), std::move(chunk));
@@ -72,7 +75,7 @@ void World::drawChunks() const {
     }
 }
 
-
+/*
 void World::updateChunkGenerationQueue() {
     // lock the chunk generation queue mutex to provent data from reading at the same time
     std::lock_guard<std::mutex> lock(chunkGenerationQueueMutex);
@@ -86,9 +89,9 @@ void World::updateChunkGenerationQueue() {
     // ----------
     // THIS FUNCTION MIGHT BE TERRIBLY SLOW, MAKE SURE THAT IT MIGHT NOT BE
     // add chunks around the player to the chunk generation queue, this is used to determine which chunks need to be generated based on the player's position
-    for (int x = -RENDER_DISTANCE + playerChunkCoords.x; x <= RENDER_DISTANCE + playerChunkCoords.x; x++) {
-        for (int y = -RENDER_DISTANCE + playerChunkCoords.y; y <= RENDER_DISTANCE + playerChunkCoords.y; y++) {
-            for (int z = -RENDER_DISTANCE + playerChunkCoords.z; z <= RENDER_DISTANCE + playerChunkCoords.z; z++) {
+    for (int x = -PlayerDistance::RENDER_DISTANCE + playerChunkCoords.x; x <= PlayerDistance::RENDER_DISTANCE + playerChunkCoords.x; x++) {
+        for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT + playerChunkCoords.y; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT + playerChunkCoords.y; y++) {
+            for (int z = -PlayerDistance::RENDER_DISTANCE + playerChunkCoords.z; z <= PlayerDistance::RENDER_DISTANCE + playerChunkCoords.z; z++) {
                 std::tuple<int, int, int> chunkCoords = std::make_tuple(x, y, z);
                 if (world.find(chunkCoords) == world.end() 
                     && std::find(chunkGenerationQueue.begin(), chunkGenerationQueue.end(), chunkCoords) == chunkGenerationQueue.end()) {
@@ -99,3 +102,4 @@ void World::updateChunkGenerationQueue() {
         }
     }
 }
+    */

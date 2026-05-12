@@ -12,11 +12,14 @@ glm::ivec3 Player::getChunkCoords() const {
     return glm::ivec3(pos) / 16;
 }
 
+bool Player::isChunkInRenderDistance(const glm::ivec3& chunkCoords) const {
+    glm::ivec3 playerChunkCoords = this->getChunkCoords();
+    glm::ivec3 delta = chunkCoords - playerChunkCoords;
 
-glm::mat4 Player::GetViewMatrix() {
-    return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-}
+    // Check if the chunk is within the cylindrical shape defined by RENDER_DISTANCE_SQUARED and RENDER_DISTANCE_HEIGHT
+    float distanceSquared = (delta.x * delta.x) + (delta.z * delta.z);
+    bool inHorizontalDistance = distanceSquared <= PlayerDistance::RENDER_DISTANCE_SQUARED;
+    bool inVerticalDistance = std::abs(delta.y) <= PlayerDistance::RENDER_DISTANCE_HEIGHT;
 
-glm::mat4 Player::GetProjectionMatrix() {
-    return m_projection;
+    return inHorizontalDistance && inVerticalDistance;
 }

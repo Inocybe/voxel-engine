@@ -5,7 +5,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-constexpr int RENDER_DISTANCE = 4; // in chunks, so this is 4 chunks in each direction, for a total of 8x8x8 = 512 chunks loaded at once, which should be fine for testing, but will need to be optimized later
+
+namespace PlayerDistance {
+    // Render distance is a cylindar shape
+    constexpr int RENDER_DISTANCE = 16;
+    constexpr int RENDER_DISTANCE_SQUARED = RENDER_DISTANCE * RENDER_DISTANCE;
+    constexpr int RENDER_DISTANCE_HEIGHT = 8;
+}
+
 
 class Player {
 public:
@@ -13,13 +20,7 @@ public:
     void update();
 
     glm::ivec3 getChunkCoords() const;
-    glm::mat4 GetViewMatrix();
-    glm::mat4 GetProjectionMatrix();
+    bool isChunkInRenderDistance(const glm::ivec3& chunkCoords) const;
 private:
     glm::vec3& pos;
-    glm::mat4 m_projection = glm::perspective(glm::radians(45.0f), (float)1200 / (float)900, 0.1f, 1000.0f);
-
-    glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  0.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 };
