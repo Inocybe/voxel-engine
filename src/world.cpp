@@ -48,6 +48,19 @@ void World::updateChunks() {
 }
 
 
+void World::updateWorkerThreads() {
+    for (const auto& chunkCoords : chunkGenerationQueue) {
+        {
+            std::lock_guard<std::mutex> lock(chunkWorkerThreadPoolMutex);
+            chunkWorkerThreadPool.addTask(chunkWorker, std::ref(*this), glm::ivec3(std::get<0>(chunkCoords), std::get<1>(chunkCoords), std::get<2>(chunkCoords)));
+        }
+    }
+}
+
+
+
+
+
 void World::drawChunks() {
     for (const auto& [location, data] : renderBuffers) {
         if (!player->isChunkInRenderDistance(tupleToVec3i(location))) {

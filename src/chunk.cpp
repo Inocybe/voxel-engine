@@ -78,8 +78,8 @@ void chunkWorker(World& world, glm::ivec3 chunkPos) {
     // automatically when chunk creates, add a task to create a mesh for the chunk
     // maybe change this later on
     {
-        std::lock_guard<std::mutex> lock(world.meshWorkerThreadPoolMutex);
-        world.meshWorkerThreadPool.addTask(meshWorker, std::ref(world), chunkPos);
+        std::lock_guard<std::mutex> lock(world.chunkVertexGenerationQueueMutex);
+        world.chunkVertexGenerationQueue.push_back(std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z));
     }
 }
 
