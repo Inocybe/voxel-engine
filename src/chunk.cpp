@@ -60,6 +60,30 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
 }
     
 
+// function to be called to be run on another thread
+// this function is what creates the chunk data to generate the world
+void chunkWorker(World& world, glm::ivec3 chunkPos) {
+    Chunk chunk((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
+
+    Heightmap heightmap; // create a heightmap to generate the chunk data from, this will be used to create the world based on the heightmap, and also to regenerate chunks when they are updated, for example when the player mines a block, we can regenerate the chunk to update the mesh data, this will be done by calling this function again with the updated heightmap data, which will then update the blocks in the chunk accordingly
+    chunk.createChunk(heightmap);
+
+    {
+        // lock the world mutex to provent data from reading at the same time
+        std::lock_guard<std::mutex> lock(world.worldMutex);
+        world.world[std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z)] = std::make_unique<Chunk>(std::move(chunk));
+    }
+
+    
+    // automatically when chunk creates, add a task to create a mesh for the chunk
+    // maybe change this later on
+    {
+        std::lock_guard<std::mutex> lock(world.meshWorkerThreadPoolMutex);
+        world.meshWorkerThreadPool.addTask(meshWorker, std::ref(world), chunkPos);
+    }
+}
+
+
 
 void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {
     unsigned int baseIndex = static_cast<unsigned int>(vertices.size());

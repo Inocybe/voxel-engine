@@ -104,6 +104,13 @@ private:
 void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
 
 
+
+// function to create the chunk data
+// when the worker is done, adds the chunk to the world map
+void chunkWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
+
+
+
 class Chunk {
 public:
     int x, y, z; // chunk coordinates

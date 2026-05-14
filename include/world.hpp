@@ -46,20 +46,26 @@ public:
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
 
-    ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
-    ThreadPool chunkGenerationThreadPool{2}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
+    ThreadPool meshWorkerThreadPool{3}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
+    std::mutex meshWorkerThreadPoolMutex; // mutex for the mesh worker thread pool, used to
+    ThreadPool chunkWorkerThreadPool{1}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
 
     World(glm::vec3& cameraPos, Shader* shader);
 
 
     void update();
-    void makeTestingMap();
 private:
     glm::vec3& cameraPos;
     std::unique_ptr<Shader> shader;
 
-    void drawChunks() const;
+    void drawChunks();
+    // function that calls other functions
+    // currently draws world, and updates chunk generation queue
+    void updateChunks();
+    void updateWorkerThreads();
+
     void updateChunkGenerationQueue();
+    void removeChunk(const std::tuple<int, int, int>& chunkCoords);
 
     glm::ivec3 tupleToVec3i(const std::tuple<int, int, int>& t) const {
         return glm::ivec3(std::get<0>(t), std::get<1>(t), std::get<2>(t));

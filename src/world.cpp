@@ -3,15 +3,6 @@
 
 World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
     player = std::make_unique<Player>(cameraPos);
-
-    //shader = std::make_unique<Shader>("../shaders/shader.vs", "../shaders/shader.fs");
-    shader->use();
-
-    this->makeTestingMap(); // creates a 3x3x3 of chunks centered around the origin, each chunk is 16x16x16 blocks --- IGNORE ---
-    for (const auto& [location, data] : world) {
-        meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), tupleToVec3i(location)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
-    }
-    //meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), glm::ivec3(0, 0, 0)); // add a task to the thread pool to generate the mesh for the chunks in the chunk generation queue, this will run on another thread, so that it doesn't block the main thread, and also to allow multiple chunks to be generated at the same time
 };
 
 
@@ -44,54 +35,41 @@ void World::update() {
         }
     }
 
-    // for now, draw all the chunks in the world
+
+    this->updateChunks();
+    this->updateWorkerThreads();
+}
+
+
+
+void World::updateChunks() {
+    this->updateChunkGenerationQueue();
     this->drawChunks();
 }
 
 
-void World::makeTestingMap() {
-    Heightmap heightmap;
-
-    for (int x = -PlayerDistance::RENDER_DISTANCE; x <= PlayerDistance::RENDER_DISTANCE; x++) {
-        for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT; y++) {
-            for (int z = -PlayerDistance::RENDER_DISTANCE; z <= PlayerDistance::RENDER_DISTANCE; z++) {
-                if (!player->isChunkInRenderDistance(glm::ivec3(x, y, z))) {
-                    continue; // Skip generating chunks that are outside the player's render distance
-                }
-                std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>(x, y, z);
-                chunk->createChunk(heightmap);
-                world.emplace(std::make_tuple(x, y, z), std::move(chunk));
-            }
-        }
-    }
-
-}
-
-
-void World::drawChunks() const {
+void World::drawChunks() {
     for (const auto& [location, data] : renderBuffers) {
+        if (!player->isChunkInRenderDistance(tupleToVec3i(location))) {
+            removeChunk(location); // remove the chunk from the world and render buffer if it's outside the player's render distance, this is used to free up memory and also to prevent drawing chunks that are too far away, which can cause stuttering and also is a waste of resources, this will also be done in the chunk generation queue update function, but this is just to make sure that it's done in case the player moves very fast and the chunk generation queue doesn't update fast enough
+            continue; // Skip drawing chunks that are outside the player's render distance
+        }
         shader->setVec3("chunkPos", (float)std::get<0>(location) * CHUNK_SIZE, (float)std::get<1>(location) * CHUNK_SIZE, (float)std::get<2>(location) * CHUNK_SIZE); // set the chunk position uniform to the world position of the chunk, this is used to calculate the world position of the vertices in the shader, so that they can be drawn in the correct position
         data->draw();
     }
 }
 
-/*
+
 void World::updateChunkGenerationQueue() {
-    // lock the chunk generation queue mutex to provent data from reading at the same time
     std::lock_guard<std::mutex> lock(chunkGenerationQueueMutex);
 
+    for (int x = -PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().x; x <= PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().x; x++) {
+        for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT + player->getChunkCoords().y; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT + player->getChunkCoords().y; y++) {
+            for (int z = -PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().z; z <= PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().z; z++) {
+                if (!player->isChunkInRenderDistance(glm::ivec3(x, y, z))) {
+                    continue; // Skip adding chunks that are outside the player's render distance
+                }
 
-    // get player chunk coordinates
-    glm::ivec3 playerChunkCoords = player->getChunkCoords();
-
-
-    // TODO: make it so that it generates the chunk in the corner later, for now keep as is
-    // ----------
-    // THIS FUNCTION MIGHT BE TERRIBLY SLOW, MAKE SURE THAT IT MIGHT NOT BE
-    // add chunks around the player to the chunk generation queue, this is used to determine which chunks need to be generated based on the player's position
-    for (int x = -PlayerDistance::RENDER_DISTANCE + playerChunkCoords.x; x <= PlayerDistance::RENDER_DISTANCE + playerChunkCoords.x; x++) {
-        for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT + playerChunkCoords.y; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT + playerChunkCoords.y; y++) {
-            for (int z = -PlayerDistance::RENDER_DISTANCE + playerChunkCoords.z; z <= PlayerDistance::RENDER_DISTANCE + playerChunkCoords.z; z++) {
                 std::tuple<int, int, int> chunkCoords = std::make_tuple(x, y, z);
                 if (world.find(chunkCoords) == world.end() 
                     && std::find(chunkGenerationQueue.begin(), chunkGenerationQueue.end(), chunkCoords) == chunkGenerationQueue.end()) {
@@ -101,5 +79,15 @@ void World::updateChunkGenerationQueue() {
             }
         }
     }
+
+
 }
-    */
+
+void World::removeChunk(const std::tuple<int, int, int>& chunkCoords) {
+    //std::lock_guard<std::mutex> lock(worldMutex);
+    std::tuple<int, int, int> chunkCoordsTuple = std::make_tuple(std::get<0>(chunkCoords), std::get<1>(chunkCoords), std::get<2>(chunkCoords));
+    // TEMOPORARY THIS IS TO POTENTIALLY MAKE IT SO THAT MAYBE I DON"T REMOVE THE WORLD DATA BECASUE TAKES UP NOT MUCH MEMORY ON CPU
+    //world.erase(chunkCoordsTuple);
+    renderBuffers.erase(chunkCoordsTuple); // also remove the render buffer for the chunk to free up memory
+}
+

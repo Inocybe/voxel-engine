@@ -13,6 +13,8 @@ public:
     int seed2 = 13370;
     int big_height_scale = 40;
     int small_height_scale = 6;
+    int min_height = -10;
+    int max_height = 50;
     
     Block getBlock(int x, int y, int z) const;
 private:
