@@ -1,6 +1,5 @@
 #include <world.hpp>
 
-
 World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
     player = std::make_unique<Player>(cameraPos);
 };
@@ -9,6 +8,8 @@ World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shade
 
 void World::update() {
     player->update();
+
+
 
     int maxMeshUploadsPerFrame = 50; // Limit the number of mesh uploads per frame to prevent stuttering
     int uploadsThisFrame = 0;
@@ -31,33 +32,60 @@ void World::update() {
             renderBuffers.emplace(std::make_tuple(data.x, data.y, data.z), std::move(renderBuffer));
             renderBuffers[std::make_tuple(data.x, data.y, data.z)]->uploadChunkMesh(data);
 
+            {
+                std::lock_guard<std::mutex> stateLock(chunkStateMutex);
+                std::tuple<int, int, int> chunkCoords = std::make_tuple(data.x, data.y, data.z);
+                chunkStates[chunkCoords] = ChunkState::Meshed; // Mark the chunk as meshed so it can be drawn
+                queuedForMeshing.erase(chunkCoords); // Remove from meshing queue
+            }
+
+
             lock.lock(); // lock again to check the queue condition
         }
     }
 
 
     this->updateChunks();
-    this->updateWorkerThreads();
+    this->updateWorkers();
 }
 
 
 
 void World::updateChunks() {
-    this->updateChunkGenerationQueue();
+    this->updateChunkDataGenerationQueue();
     this->drawChunks();
 }
 
 
-void World::updateWorkerThreads() {
-    for (const auto& chunkCoords : chunkGenerationQueue) {
-        {
-            std::lock_guard<std::mutex> lock(chunkWorkerThreadPoolMutex);
-            chunkWorkerThreadPool.addTask(chunkWorker, std::ref(*this), glm::ivec3(std::get<0>(chunkCoords), std::get<1>(chunkCoords), std::get<2>(chunkCoords)));
+void World::updateWorkers() {
+    const size_t maxChunkTasksPerFrame = 10;
+    const size_t maxMeshTasksPerFrame = 10;
+
+    {
+        std::lock_guard<std::mutex> lock1(chunkDataGenerationQueueMutex);
+        size_t tasksThisFrame = 0;
+        while (!chunkDataGenerationQueue.empty() && tasksThisFrame < maxChunkTasksPerFrame) {
+            glm::ivec3 chunkCoords = tupleToVec3i(chunkDataGenerationQueue.front());
+            chunkDataGenerationQueue.pop_front();
+            chunkWorkerThreadPool.addTask(chunkWorker, std::ref(*this), chunkCoords);
+            tasksThisFrame++;
         }
     }
+
+
+    {
+        std::lock_guard<std::mutex> lock2(chunkVertexGenerationQueueMutex);
+        size_t tasksThisFrame = 0;
+        while (!chunkVertexGenerationQueue.empty() && tasksThisFrame < maxMeshTasksPerFrame) {
+            glm::ivec3 chunkCoords = tupleToVec3i(chunkVertexGenerationQueue.front());
+            chunkVertexGenerationQueue.pop_front();
+            meshWorkerThreadPool.addTask(meshWorker, std::ref(*this), chunkCoords);
+            tasksThisFrame++;
+        }
+
+
+    }
 }
-
-
 
 
 
@@ -73,21 +101,48 @@ void World::drawChunks() {
 }
 
 
-void World::updateChunkGenerationQueue() {
-    std::lock_guard<std::mutex> lock(chunkGenerationQueueMutex);
+void World::updateChunkDataGenerationQueue() {
+    // updating chunk coordinates, stop if player hasn't moved to a new chunk
+    if (player->getChunkCoords() == lastPlayerChunkCoords) {
+        return; // Player hasn't moved to a new chunk, no need to update the queue
+    }
+    lastPlayerChunkCoords = player->getChunkCoords();
+
 
     for (int x = -PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().x; x <= PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().x; x++) {
         for (int y = -PlayerDistance::RENDER_DISTANCE_HEIGHT + player->getChunkCoords().y; y <= PlayerDistance::RENDER_DISTANCE_HEIGHT + player->getChunkCoords().y; y++) {
             for (int z = -PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().z; z <= PlayerDistance::RENDER_DISTANCE + player->getChunkCoords().z; z++) {
+                // HERE FOR MAYBE IF I WANTED TO MAKE THE RENDER DISTANCE A CYLINDAR or smth \0/
+                /*
                 if (!player->isChunkInRenderDistance(glm::ivec3(x, y, z))) {
                     continue; // Skip adding chunks that are outside the player's render distance
                 }
+                    */
 
                 std::tuple<int, int, int> chunkCoords = std::make_tuple(x, y, z);
-                if (world.find(chunkCoords) == world.end() 
-                    && std::find(chunkGenerationQueue.begin(), chunkGenerationQueue.end(), chunkCoords) == chunkGenerationQueue.end()) {
-                    
-                    chunkGenerationQueue.push_front(chunkCoords);
+                bool enqueForGeneration = false;
+                bool enqueForMeshing = false;
+
+                {
+                    std::lock_guard<std::mutex> lock(chunkStateMutex);
+                    auto stateIt = chunkStates.find(chunkCoords);
+                    if (stateIt == chunkStates.end()) {
+                        // Not generated, not queued for generation
+                        chunkStates[chunkCoords] = ChunkState::QueuedForGeneration;
+                        enqueForGeneration = true;
+                    } else if (stateIt->second == ChunkState::Generated) {
+                        // Generated but not queued for meshing
+                        stateIt->second = ChunkState::QueuedForMeshing;
+                        enqueForMeshing = true;
+                    }
+                }
+
+                if (enqueForGeneration) {
+                    std::lock_guard<std::mutex> lock(chunkDataGenerationQueueMutex);
+                    chunkDataGenerationQueue.push_back(chunkCoords);
+                } else if (enqueForMeshing) {
+                    std::lock_guard<std::mutex> lock(chunkVertexGenerationQueueMutex);
+                    chunkVertexGenerationQueue.push_back(chunkCoords);
                 }
             }
         }
@@ -97,10 +152,15 @@ void World::updateChunkGenerationQueue() {
 }
 
 void World::removeChunk(const std::tuple<int, int, int>& chunkCoords) {
-    //std::lock_guard<std::mutex> lock(worldMutex);
-    std::tuple<int, int, int> chunkCoordsTuple = std::make_tuple(std::get<0>(chunkCoords), std::get<1>(chunkCoords), std::get<2>(chunkCoords));
-    // TEMOPORARY THIS IS TO POTENTIALLY MAKE IT SO THAT MAYBE I DON"T REMOVE THE WORLD DATA BECASUE TAKES UP NOT MUCH MEMORY ON CPU
-    //world.erase(chunkCoordsTuple);
-    renderBuffers.erase(chunkCoordsTuple); // also remove the render buffer for the chunk to free up memory
+    renderBuffers.erase(chunkCoords); // remove the render buffer for the chunk to free up memory
+
+    {
+        std::lock_guard<std::mutex> lock(chunkStateMutex);
+        auto stateIt = chunkStates.find(chunkCoords);
+        if (stateIt != chunkStates.end() && stateIt->second == ChunkState::Meshed) {
+            stateIt->second = ChunkState::Generated; // Mark as generated so it can be re-meshed if the player moves back into range
+        }
+        queuedForMeshing.erase(chunkCoords);
+    }
 }
 

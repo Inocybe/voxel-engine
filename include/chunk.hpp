@@ -15,11 +15,11 @@
 class World;
 class Heightmap;
 
-constexpr int CHUNK_SIZE = 16;
+constexpr int CHUNK_SIZE = 32;
 
 #pragma pack(push, 1)
 struct Vertex {
-    GLubyte x, y, z; // local pos 0-15 within the chunk, using 4 bits each, so we can fit all three into a single uint8_t
+    GLubyte x, y, z; // local pos 0-31 within the chunk, using 5 bits each, so we can fit all three into a single uint8_t
     GLubyte normal; // only 6 directions
     GLubyte u, v;
 };

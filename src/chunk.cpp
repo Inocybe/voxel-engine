@@ -78,8 +78,16 @@ void chunkWorker(World& world, glm::ivec3 chunkPos) {
     // automatically when chunk creates, add a task to create a mesh for the chunk
     // maybe change this later on
     {
-        std::lock_guard<std::mutex> lock(world.chunkVertexGenerationQueueMutex);
-        world.chunkVertexGenerationQueue.push_back(std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z));
+        std::scoped_lock lock(world.chunkStateMutex, world.chunkVertexGenerationQueueMutex);
+        std::tuple<int, int, int> chunkCoords = std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
+        world.queuedForGeneration.erase(chunkCoords); // Remove from generation queue
+        world.chunkStates[chunkCoords] = ChunkState::Generated; // Mark as generated
+
+        if (world.queuedForMeshing.insert(chunkCoords).second) { // Only add to meshing queue if not already queued
+            world.chunkStates[chunkCoords] = ChunkState::QueuedForMeshing; // Mark as queued for meshing
+            world.chunkVertexGenerationQueue.push_back(chunkCoords);
+
+        }
     }
 }
 

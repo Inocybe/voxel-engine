@@ -1,4 +1,5 @@
 #include <player.hpp>
+#include <chunk.hpp>
 
 #include <iostream>
 
@@ -9,7 +10,7 @@ void Player::update() {
 }
 
 glm::ivec3 Player::getChunkCoords() const {
-    return glm::ivec3(pos) / 16;
+    return glm::ivec3(pos) / CHUNK_SIZE;
 }
 
 bool Player::isChunkInRenderDistance(const glm::ivec3& chunkCoords) const {
