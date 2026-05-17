@@ -17,9 +17,7 @@ bool Player::isChunkInRenderDistance(const glm::ivec3& chunkCoords) const {
     glm::ivec3 playerChunkCoords = this->getChunkCoords();
     glm::ivec3 delta = chunkCoords - playerChunkCoords;
 
-    // Check if the chunk is within the cylindrical shape defined by RENDER_DISTANCE_SQUARED and RENDER_DISTANCE_HEIGHT
-    float distanceSquared = (delta.x * delta.x) + (delta.z * delta.z);
-    bool inHorizontalDistance = distanceSquared <= PlayerDistance::RENDER_DISTANCE_SQUARED;
+    bool inHorizontalDistance = std::abs(delta.x) <= PlayerDistance::RENDER_DISTANCE && std::abs(delta.z) <= PlayerDistance::RENDER_DISTANCE;
     bool inVerticalDistance = std::abs(delta.y) <= PlayerDistance::RENDER_DISTANCE_HEIGHT;
 
     return inHorizontalDistance && inVerticalDistance;

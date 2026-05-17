@@ -33,7 +33,11 @@ struct TupleHash {
         auto h1 = std::hash<int>{}(std::get<0>(t));
         auto h2 = std::hash<int>{}(std::get<1>(t));
         auto h3 = std::hash<int>{}(std::get<2>(t));
-        return h1 ^ (h2 << 32) ^ (h3 << 16);
+        size_t seed = h1;
+        // some weird ahh magic hashing constants 0x9e3779b9
+        seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
     }
 };
 
@@ -53,8 +57,6 @@ public:
 
     // chunk state manager to keep track of which chunks are generated, and which are queued for generation or meshing, this is used to prevent multiple threads from generating the same chunk or mesh at the same time, and also to prevent generating chunks that are already generated but not yet meshed, this will be used in the updateChunkDataGenerationQueue function to determine which chunks need to be generated or meshed when the player moves to a new chunk
     std::unordered_map<std::tuple<int, int, int>, ChunkState, TupleHash> chunkStates;
-    std::unordered_set<std::tuple<int, int, int>, TupleHash> queuedForGeneration;
-    std::unordered_set<std::tuple<int, int, int>, TupleHash> queuedForMeshing;
     std::mutex chunkStateMutex;
 
 
@@ -77,7 +79,7 @@ public:
     void update();
 private:
     glm::vec3& cameraPos;
-    std::unique_ptr<Shader> shader;
+    Shader* shader;
     glm::ivec3 lastPlayerChunkCoords = glm::ivec3(0);
 
 

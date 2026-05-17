@@ -36,7 +36,7 @@ void World::update() {
                 std::lock_guard<std::mutex> stateLock(chunkStateMutex);
                 std::tuple<int, int, int> chunkCoords = std::make_tuple(data.x, data.y, data.z);
                 chunkStates[chunkCoords] = ChunkState::Meshed; // Mark the chunk as meshed so it can be drawn
-                queuedForMeshing.erase(chunkCoords); // Remove from meshing queue
+                //queuedForMeshing.erase(chunkCoords); // Remove from meshing queue
             }
 
 
@@ -72,7 +72,6 @@ void World::updateWorkers() {
         }
     }
 
-
     {
         std::lock_guard<std::mutex> lock2(chunkVertexGenerationQueueMutex);
         size_t tasksThisFrame = 0;
@@ -90,13 +89,21 @@ void World::updateWorkers() {
 
 
 void World::drawChunks() {
+    std::vector<std::tuple<int, int, int>> chunksToRemove; // Store chunks to remove after drawing to avoid modifying the map while iterating
+
     for (const auto& [location, data] : renderBuffers) {
         if (!player->isChunkInRenderDistance(tupleToVec3i(location))) {
-            removeChunk(location); // remove the chunk from the world and render buffer if it's outside the player's render distance, this is used to free up memory and also to prevent drawing chunks that are too far away, which can cause stuttering and also is a waste of resources, this will also be done in the chunk generation queue update function, but this is just to make sure that it's done in case the player moves very fast and the chunk generation queue doesn't update fast enough
+            chunksToRemove.push_back(location); // Mark the chunk for removal
             continue; // Skip drawing chunks that are outside the player's render distance
         }
+
         shader->setVec3("chunkPos", (float)std::get<0>(location) * CHUNK_SIZE, (float)std::get<1>(location) * CHUNK_SIZE, (float)std::get<2>(location) * CHUNK_SIZE); // set the chunk position uniform to the world position of the chunk, this is used to calculate the world position of the vertices in the shader, so that they can be drawn in the correct position
         data->draw();
+    }
+
+    // Remove chunks that are outside the render distance
+    for (const auto& chunkCoords : chunksToRemove) {
+        this->removeChunk(chunkCoords);
     }
 }
 
@@ -152,15 +159,13 @@ void World::updateChunkDataGenerationQueue() {
 }
 
 void World::removeChunk(const std::tuple<int, int, int>& chunkCoords) {
-    renderBuffers.erase(chunkCoords); // remove the render buffer for the chunk to free up memory
-
+    renderBuffers.erase(chunkCoords); // Remove the render buffer for the chunk, this will prevent it from being drawn and also free up memory
     {
         std::lock_guard<std::mutex> lock(chunkStateMutex);
         auto stateIt = chunkStates.find(chunkCoords);
         if (stateIt != chunkStates.end() && stateIt->second == ChunkState::Meshed) {
             stateIt->second = ChunkState::Generated; // Mark as generated so it can be re-meshed if the player moves back into range
         }
-        queuedForMeshing.erase(chunkCoords);
     }
 }
 
