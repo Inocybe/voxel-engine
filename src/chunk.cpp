@@ -2,10 +2,12 @@
 #include <world.hpp>
 #include <heightmap.hpp>
 
+#include <shared_mutex>
+
 
 // function to be called to be run on another thread
 // this function is what creates the mesh data to mesh
-void meshWorker(World& world, glm::ivec3 chunkPos) {
+void meshWorker(World& world, ChunkCoords chunkPos) {
     ChunkMesh chunkMesh;
 
     chunkMesh.x = (int)chunkPos.x;
@@ -14,11 +16,11 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
 
     {
         // lock the world mutex to provent data from reading at the same time
-        std::lock_guard<std::mutex> lock(world.worldMutex);
+        std::shared_lock<std::shared_mutex> lock(world.worldMutex);
 
-        auto it = world.world.find(std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z));
+        auto it = world.world.find(ChunkCoords{(int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z});
         if (it == world.world.end()) {
-            std::cerr << "Chunk not found at position: " << chunkPos.x << ", " << chunkPos.y << ", " << chunkPos.z << std::endl;
+            printf("Chunk removed before meshing: %d, %d, %d\n", (int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
             return;
         }
         Chunk& chunk = *(it->second);
@@ -50,7 +52,8 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
                 }
             }
         }
-    }
+    } // shared lock release
+
 
     // lock the mesh queue mutex to provent data from reading at the same time
     {
@@ -62,7 +65,7 @@ void meshWorker(World& world, glm::ivec3 chunkPos) {
 
 // function to be called to be run on another thread
 // this function is what creates the chunk data to generate the world
-void chunkWorker(World& world, glm::ivec3 chunkPos) {
+void chunkWorker(World& world, ChunkCoords chunkPos) {
     Chunk chunk((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
 
     Heightmap heightmap; // create a heightmap to generate the chunk data from, this will be used to create the world based on the heightmap, and also to regenerate chunks when they are updated, for example when the player mines a block, we can regenerate the chunk to update the mesh data, this will be done by calling this function again with the updated heightmap data, which will then update the blocks in the chunk accordingly
@@ -70,8 +73,8 @@ void chunkWorker(World& world, glm::ivec3 chunkPos) {
 
     {
         // lock the world mutex to provent data from reading at the same time
-        std::lock_guard<std::mutex> lock(world.worldMutex);
-        world.world[std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z)] = std::make_unique<Chunk>(std::move(chunk));
+        std::lock_guard<std::shared_mutex> lock(world.worldMutex);
+        world.world[ChunkCoords{(int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z}] = std::make_unique<Chunk>(std::move(chunk));
     }
 
     
@@ -79,9 +82,13 @@ void chunkWorker(World& world, glm::ivec3 chunkPos) {
     // maybe change this later on
     {
         std::scoped_lock lock(world.chunkStateMutex, world.chunkVertexGenerationQueueMutex);
-        std::tuple<int, int, int> chunkCoords = std::make_tuple((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
-        world.chunkStates[chunkCoords] = ChunkState::Generated; // Mark as generated
-        world.chunkVertexGenerationQueue.push_back(chunkCoords);
+        auto chunkCoords = ChunkCoords{(int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z};
+        auto it = world.chunkStates.find(chunkCoords);
+        if (it != world.chunkStates.end() && it->second == ChunkState::QueuedForGeneration) {
+            it->second = ChunkState::QueuedForMeshing;
+            world.chunkVertexGenerationQueue.push_back(chunkCoords);
+        }
+            
     }
 }
 
@@ -158,7 +165,7 @@ bool Chunk::isBlockAirOtherChunk(World& world, int x, int y, int z) {
     if (z < 0) neighborChunkZ -= 1;
     else if (z >= CHUNK_SIZE) neighborChunkZ += 1;
 
-    auto it = world.world.find(std::make_tuple(neighborChunkX, neighborChunkY, neighborChunkZ));
+    auto it = world.world.find(ChunkCoords{neighborChunkX, neighborChunkY, neighborChunkZ});
     if (it == world.world.end()) {
         // If the neighboring chunk doesn't exist, we can treat it as air for face culling purposes.
         return true;

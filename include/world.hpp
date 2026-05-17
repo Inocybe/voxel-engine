@@ -5,6 +5,7 @@
 
 #include <array>
 #include <mutex>
+#include <shared_mutex>
 #include <queue>
 #include <deque>
 #include <vector>
@@ -27,51 +28,61 @@ enum class ChunkState : uint8_t {
     Meshed
 };
 
+struct ChunkCoords {
+    int x, y, z;
 
-struct TupleHash {
-    size_t operator()(const std::tuple<int, int, int>& t) const {
-        auto h1 = std::hash<int>{}(std::get<0>(t));
-        auto h2 = std::hash<int>{}(std::get<1>(t));
-        auto h3 = std::hash<int>{}(std::get<2>(t));
-        size_t seed = h1;
-        // some weird ahh magic hashing constants 0x9e3779b9
-        seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        return seed;
+    bool operator==(const ChunkCoords& other) const {
+        return x == other.x && y == other.y && z == other.z;
     }
 };
 
 
+namespace std {
+    template <>
+    struct hash<ChunkCoords> {
+        size_t operator()(const ChunkCoords& coords) const {
+            auto h1 = std::hash<int>{}(coords.x);
+            auto h2 = std::hash<int>{}(coords.y);
+            auto h3 = std::hash<int>{}(coords.z);
+            size_t seed = h1;
+            // some weird ahh magic hashing constants 0x9e3779b9
+            seed ^= h2 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            seed ^= h3 + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+    };
+}
+
+
 class World {
 public:
-    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<Chunk>, TupleHash> world;
-    std::mutex worldMutex;
+    std::unordered_map<ChunkCoords, std::unique_ptr<Chunk>> world;
+    std::shared_mutex worldMutex;
     
     // variables for uploading chunks to world mesh 
     // (I think I'll reserve one thread specficailly for generating world stuff)
-    std::deque<std::tuple<int, int, int>> chunkDataGenerationQueue;  // Keep as simple task queue
-    std::deque<std::tuple<int, int, int>> chunkVertexGenerationQueue;
+    std::deque<ChunkCoords> chunkDataGenerationQueue;  // Keep as simple task queue
+    std::deque<ChunkCoords> chunkVertexGenerationQueue;
     std::mutex chunkDataGenerationQueueMutex;
     std::mutex chunkVertexGenerationQueueMutex;
 
 
     // chunk state manager to keep track of which chunks are generated, and which are queued for generation or meshing, this is used to prevent multiple threads from generating the same chunk or mesh at the same time, and also to prevent generating chunks that are already generated but not yet meshed, this will be used in the updateChunkDataGenerationQueue function to determine which chunks need to be generated or meshed when the player moves to a new chunk
-    std::unordered_map<std::tuple<int, int, int>, ChunkState, TupleHash> chunkStates;
+    std::unordered_map<ChunkCoords, ChunkState> chunkStates;
     std::mutex chunkStateMutex;
 
-
-
-
-    std::unordered_map<std::tuple<int, int, int>, std::unique_ptr<RenderBuffer>, TupleHash> renderBuffers; // map of chunk coordinates to render buffers, used to store the render buffers for each chunk, so that they can be drawn when needed, and also to prevent them from being deleted when the mesh worker thread finishes
+    std::unordered_map<ChunkCoords, std::unique_ptr<RenderBuffer>> renderBuffers; // map of chunk coordinates to render buffers, used to store the render buffers for each chunk, so that they can be drawn when needed, and also to prevent them from being deleted when the mesh worker thread finishes
     // variables for uploading renderbuffers to unordered map
     std::queue<ChunkMesh> meshUploadQueue;
     std::mutex meshQueueMutex;
+
 
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
 
     ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
     ThreadPool chunkWorkerThreadPool{4}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
+
 
     World(glm::vec3& cameraPos, Shader* shader);
 
@@ -88,11 +99,10 @@ private:
     // currently draws world, and updates chunk generation queue
     void updateChunks();
     void updateWorkers();
-
     void updateChunkDataGenerationQueue();
-    void removeChunk(const std::tuple<int, int, int>& chunkCoords);
+    void removeChunk(const ChunkCoords& chunkCoords);
 
-    glm::ivec3 tupleToVec3i(const std::tuple<int, int, int>& t) const {
-        return glm::ivec3(std::get<0>(t), std::get<1>(t), std::get<2>(t));
+    glm::ivec3 coordsToVec3i(const ChunkCoords& coords) {
+        return glm::ivec3(coords.x, coords.y, coords.z);
     }
 };
