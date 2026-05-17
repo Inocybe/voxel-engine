@@ -16,7 +16,7 @@ struct ChunkCoords;
 class World;
 class Heightmap;
 
-constexpr int CHUNK_SIZE = 32;
+constexpr int CHUNK_SIZE = 64;
 
 #pragma pack(push, 1)
 struct Vertex {

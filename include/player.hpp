@@ -8,8 +8,8 @@
 
 namespace PlayerDistance {
     // Render distance is a cylindar shape
-    constexpr int RENDER_DISTANCE = 16;
-    constexpr int RENDER_DISTANCE_HEIGHT = 8;
+    constexpr int RENDER_DISTANCE = 8;
+    constexpr int RENDER_DISTANCE_HEIGHT = 3;
 }
 
 
