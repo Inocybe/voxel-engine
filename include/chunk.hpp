@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 // FORWARD DELCARATIONS 
+struct ChunkCoords;
 class World;
 class Heightmap;
 
@@ -101,13 +102,13 @@ private:
 // function to create the chunk mesh
 // when the worker is done, uploads a chunkmesh to the meshqueue
 // in main, meshqueue generates the renderbuffer and adds it to its own map
-void meshWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
+void meshWorker(World& world, ChunkCoords chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
 
 
 
 // function to create the chunk data
 // when the worker is done, adds the chunk to the world map
-void chunkWorker(World& world, glm::ivec3 chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
+void chunkWorker(World& world, ChunkCoords chunkPos); // function that will be run by the mesh worker thread, will wait for chunks to be added to the queue and then generate mesh data for them and upload to gpu, then mark them as ready to draw
 
 
 
