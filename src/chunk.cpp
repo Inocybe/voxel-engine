@@ -167,8 +167,7 @@ bool Chunk::isBlockAirOtherChunk(World& world, int x, int y, int z) {
 
     auto it = world.world.find(ChunkCoords{neighborChunkX, neighborChunkY, neighborChunkZ});
     if (it == world.world.end()) {
-        // If the neighboring chunk doesn't exist, we can treat it as air for face culling purposes.
-        return true;
+        return false;
     }
     Chunk& neighborChunk = *(it->second);
 

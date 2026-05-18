@@ -1,7 +1,7 @@
 #include <world.hpp>
 
-World::World(glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
-    player = std::make_unique<Player>(cameraPos);
+World::World(GLFWwindow* window, glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
+    player = std::make_unique<Player>(window, cameraPos);
 };
 
 

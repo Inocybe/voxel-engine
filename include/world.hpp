@@ -19,7 +19,11 @@
 #include <player.hpp>
 #include <chunk.hpp>
 
-
+// enum to call for force updating the world if I want it to remap the noise stuff
+enum WorldCommands {
+    None,
+    Update,
+};
 
 enum class ChunkState : uint8_t {
     QueuedForGeneration,
@@ -79,12 +83,13 @@ public:
 
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
+    WorldCommands worldCommand = WorldCommands::None;
 
     ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
     ThreadPool chunkWorkerThreadPool{4}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
 
 
-    World(glm::vec3& cameraPos, Shader* shader);
+    World(GLFWwindow* window, glm::vec3& cameraPos, Shader* shader);
 
 
     void update();

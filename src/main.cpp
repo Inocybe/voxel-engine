@@ -36,7 +36,7 @@ int main() {
     shader->use();
 
 
-    World world(engine->getCameraPosLocation(), shader.get());
+    World world(engine->getWindow(), engine->getCameraPosLocation(), shader.get());
 
     
     // RENDER LOOP

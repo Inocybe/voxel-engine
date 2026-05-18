@@ -187,8 +187,6 @@ void Engine::process_input() {
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * currentCameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * currentCameraSpeed;
-
-
 }
 
 
