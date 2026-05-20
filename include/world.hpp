@@ -77,13 +77,20 @@ public:
 
     std::unordered_map<ChunkCoords, std::unique_ptr<RenderBuffer>> renderBuffers; // map of chunk coordinates to render buffers, used to store the render buffers for each chunk, so that they can be drawn when needed, and also to prevent them from being deleted when the mesh worker thread finishes
     // variables for uploading renderbuffers to unordered map
+    // this stores finished vertex data, prepares it for upload
     std::queue<ChunkMesh> meshUploadQueue;
     std::mutex meshQueueMutex;
 
 
     //std::atomic<bool> running = true;
     std::unique_ptr<Player> player;
+    // allows for force update of the world
     WorldCommands worldCommand = WorldCommands::None;
+    // heightmap
+    Heightmap heightmap;
+    std::shared_mutex heightmapMutex;
+
+
 
     ThreadPool meshWorkerThreadPool{4}; // thread pool for generating chunk meshes, currently set to 4 threads, but can be increased later if needed
     ThreadPool chunkWorkerThreadPool{4}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
