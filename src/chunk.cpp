@@ -66,10 +66,15 @@ void meshWorker(World& world, ChunkCoords chunkPos) {
 // function to be called to be run on another thread
 // this function is what creates the chunk data to generate the world
 void chunkWorker(World& world, ChunkCoords chunkPos) {
-    Chunk chunk((int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
+    Chunk chunk(world, (int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
 
-    Heightmap heightmap; // create a heightmap to generate the chunk data from, this will be used to create the world based on the heightmap, and also to regenerate chunks when they are updated, for example when the player mines a block, we can regenerate the chunk to update the mesh data, this will be done by calling this function again with the updated heightmap data, which will then update the blocks in the chunk accordingly
-    chunk.createChunk(heightmap);
+    // get the current heightmap data, use shared lock becasue I am not writing any data
+    {
+        std::shared_lock<std::shared_mutex> lock(world.heightmapMutex);
+        chunk.createChunk(world.heightmap);
+
+    }
+
 
     {
         // lock the world mutex to provent data from reading at the same time
@@ -123,7 +128,7 @@ void ChunkMesh::addFace(int wx, int wy, int wz, Direction dir) {
 
 
 
-Chunk::Chunk(int x, int y, int z) : x(x), y(y), z(z) {
+Chunk::Chunk(World& world, int x, int y, int z) : x(x), y(y), z(z) {
     // Default test chunk contents to solid so mesh generation has visible faces.
     blocks.fill(Block{1});
 }

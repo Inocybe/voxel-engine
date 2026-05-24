@@ -10,6 +10,12 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <unordered_map>
+#include <functional>
+#include <vector>
+
+//enum class InputAction;
+//class InputManager;
 
 /*
 CONVNETION TO TRY TO OPEN WINDOW
@@ -27,6 +33,7 @@ THIS WILL PREVENT ANY ERRORS
 class Engine {
 public:
     GLFWwindow* window;
+    InputManager inputManager;
     float deltaTime = 0.0;
 
     // ima just default this to default monitor and window
@@ -80,4 +87,77 @@ private:
     void on_scroll(GLFWwindow* windowInstance, double xOffset, double yOffset);
     void on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos);
     void on_framebuffer_size(GLFWwindow* windowInstance, int width, int height);
+};
+
+
+enum class InputAction {
+    MoveForward,
+    MoveBackward,
+    MoveLeft,
+    MoveRight,
+    Sprint,
+    ReloadWorld,
+};
+
+enum class InputType {
+    Press,
+    Hold
+};
+
+class InputManager {
+struct Bindings {
+    InputAction action;
+    InputType type;
+};
+
+public:
+    void bindKey(int key, InputAction action, InputType type = InputType::Press) {
+        bindings[key] = {action, type};
+    }
+
+    void subscribe(InputAction action, std::function<void()> callback) {
+        callbacks[action].push_back(callback);
+    }
+
+    void update(GLFWwindow* window) {
+        for (const auto& [key, binding] : bindings) {
+            int currentState = glfwGetKey(window, key);
+            bool isPressed = currentState == GLFW_PRESS;
+            bool wasPressed = previousStates[key];
+
+            bool shouldTrigger = false;
+
+            if (binding.type == InputType::Hold && isPressed) {
+                shouldTrigger = true;
+            } else if (binding.type == InputType::Press && isPressed && !wasPressed) {
+                shouldTrigger = true;
+            }
+
+            if (shouldTrigger) {
+                executeAction(key);
+            }
+
+            previousStates[key] = isPressed;
+        }
+    }   
+
+
+
+private:
+    void executeAction(int key) {
+        auto it = bindings.find(key);
+        if (it != bindings.end()) {
+            InputAction action = it->second.action;
+            auto cbIt = callbacks.find(action);
+            if (cbIt != callbacks.end()) {
+                for (const auto& callback : cbIt->second) {
+                    callback();
+                }
+            }
+        }
+    }
+
+    std::unordered_map<int, Bindings> bindings;    
+    std::unordered_map<int, bool> previousStates;
+    std::unordered_map<InputAction, std::vector<std::function<void()>>> callbacks;
 };

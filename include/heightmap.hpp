@@ -21,8 +21,6 @@ private:
     int min_height = -10;
     int max_height = 50;
 
-    std::unique_ptr<SimplexNoise> noise;
-
 
     void getBigDetails();
     void getSmallDetails();

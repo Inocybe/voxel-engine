@@ -118,7 +118,7 @@ public:
     std::array<Block, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE> blocks;
 
     
-    Chunk(int x, int y, int z);
+    Chunk(World& world, int x, int y, int z);
 
     void createRandomChunk() {
         std::random_device rd;
