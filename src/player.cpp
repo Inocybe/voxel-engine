@@ -7,6 +7,15 @@
 #include <iostream>
 
 Player::Player(World* world, InputManager& inputManager, glm::vec3& cameraPos) : world(world), inputManager(inputManager), pos(cameraPos) {
+    inputManager.bindKey(GLFW_KEY_W, InputAction::MoveForward, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_S, InputAction::MoveBackward, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_A, InputAction::MoveLeft, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_D, InputAction::MoveRight, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_SPACE, InputAction::MoveUp, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_LEFT_CONTROL, InputAction::MoveDown, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_LEFT_SHIFT, InputAction::Sprint, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_R, InputAction::ReloadWorld, InputType::Press);
+
     inputManager.subscribe(InputAction::MoveForward, [this]() { this->moveForward(); });
     inputManager.subscribe(InputAction::MoveBackward, [this]() { this->moveBackward(); });
     inputManager.subscribe(InputAction::MoveLeft, [this]() { this->moveLeft(); });
