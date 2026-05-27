@@ -58,7 +58,6 @@ public:
     // #TODO implement a glm::vec3 changeCameraPos(); so that it will update and keep same memory address
     glm::vec3& getCameraPosLocation();   
     glm::vec3 getCameraPos();
-    GLFWwindow* getWindow() const { return window; }
 private:
     // window vars
     unsigned int screen_width;
@@ -95,6 +94,8 @@ enum class InputAction {
     MoveBackward,
     MoveLeft,
     MoveRight,
+    MoveUp,
+    MoveDown,
     Sprint,
     ReloadWorld,
 };

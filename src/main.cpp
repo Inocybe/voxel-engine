@@ -16,6 +16,7 @@
 #include <shader.hpp>
 #include <texture.hpp>
 #include <engine.hpp>
+#include <player.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 1200;
@@ -36,7 +37,7 @@ int main() {
     shader->use();
 
 
-    World world(engine->getWindow(), engine->getCameraPosLocation(), shader.get());
+    World world(engine->inputManager, engine->getCameraPosLocation(), shader.get());
 
     
     // RENDER LOOP

@@ -19,12 +19,16 @@
 #include <player.hpp>
 #include <chunk.hpp>
 
+class InputManager;
+
+
 // enum to call for force updating the world if I want it to remap the noise stuff
 enum WorldCommands {
     None,
     Update,
 };
 
+// states for generation
 enum class ChunkState : uint8_t {
     QueuedForGeneration,
     Generated,
@@ -32,6 +36,7 @@ enum class ChunkState : uint8_t {
     Meshed
 };
 
+// own chunk to help simplify things
 struct ChunkCoords {
     int x, y, z;
 
@@ -96,7 +101,7 @@ public:
     ThreadPool chunkWorkerThreadPool{4}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
 
 
-    World(GLFWwindow* window, glm::vec3& cameraPos, Shader* shader);
+    World(InputManager& inputManager, glm::vec3& cameraPos, Shader* shader);
 
 
     void update();

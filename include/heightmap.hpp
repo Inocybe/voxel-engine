@@ -9,6 +9,7 @@ struct Block;
 
 class Heightmap {
 public:
+    Heightmap() = default;
     Heightmap(int seed1, int seed2, int big_height_scale, int small_height_scale, int min_height, int max_height);
     
 

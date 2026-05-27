@@ -1,7 +1,8 @@
 #include <world.hpp>
+#include <engine.hpp>
 
-World::World(GLFWwindow* window, glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
-    player = std::make_unique<Player>(window, cameraPos);
+World::World(InputManager& inputManager, glm::vec3& cameraPos, Shader* shader) : cameraPos(cameraPos), shader(shader) {
+    player = std::make_unique<Player>(this, inputManager, cameraPos);
 };
 
 
