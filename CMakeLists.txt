@@ -37,12 +37,16 @@ add_library(heightmap src/heightmap.cpp)
 target_include_directories(heightmap PUBLIC include)
 target_link_libraries(heightmap PUBLIC glm simplex)
 
+add_library(thread_pool src/thread_pool.cpp)
+target_include_directories(thread_pool PUBLIC include)
+
 add_library(chunk src/chunk.cpp)
 target_include_directories(chunk PUBLIC include)
 target_link_libraries(chunk PUBLIC glm heightmap)
 
-add_library(thread_pool src/thread_pool.cpp)
-target_include_directories(thread_pool PUBLIC include)
+add_library(engine src/engine.cpp)
+target_include_directories(engine PUBLIC include)
+target_link_libraries(engine PUBLIC glm glad glfw)
 
 add_library(player src/player.cpp)
 target_include_directories(player PUBLIC include)
@@ -50,16 +54,12 @@ target_link_libraries(player PUBLIC glm)
 
 add_library(world src/world.cpp)
 target_include_directories(world PUBLIC include)
-target_link_libraries(world PUBLIC glm chunk heightmap player thread_pool)
-
-add_library(engine src/engine.cpp)
-target_include_directories(engine PUBLIC include)
-target_link_libraries(engine PUBLIC glm glad glfw shader texture world player thread_pool)
+target_link_libraries(world PUBLIC glm chunk heightmap player thread_pool engine shader)
 
 #include_directories(external/glfw/include include include/glm)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main PRIVATE engine ${CMAKE_DL_LIBS})
+target_link_libraries(main PRIVATE world)
 
 
 # TO RUN: cmake .. --preset mingw-clang
