@@ -1,7 +1,7 @@
 #include <engine.hpp>
 
 Engine::Engine(unsigned int screenWidth, unsigned int screenHeight, const char* windowName) : 
-screen_height(screenHeight), screen_width(screenWidth) {
+screen_height(screenHeight), screen_width(screenWidth), camera(screenWidth, screenHeight) {
     glfwSetErrorCallback(Engine::error_callback);
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -39,6 +39,20 @@ screen_height(screenHeight), screen_width(screenWidth) {
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     on_framebuffer_size(window, fbWidth, fbHeight);
 
+    // Setup input bindings for camera movement
+    inputManager.bindKey(GLFW_KEY_W, InputAction::MoveForward, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_S, InputAction::MoveBackward, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_A, InputAction::MoveLeft, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_D, InputAction::MoveRight, InputType::Hold);
+    inputManager.bindKey(GLFW_KEY_LEFT_SHIFT, InputAction::Sprint, InputType::Hold);
+
+    // Subscribe input actions to camera methods
+    inputManager.subscribe(InputAction::MoveForward, [this]() { camera.moveForward(deltaTime); });
+    inputManager.subscribe(InputAction::MoveBackward, [this]() { camera.moveBackward(deltaTime); });
+    inputManager.subscribe(InputAction::MoveLeft, [this]() { camera.moveLeft(deltaTime); });
+    inputManager.subscribe(InputAction::MoveRight, [this]() { camera.moveRight(deltaTime); });
+    inputManager.subscribe(InputAction::Sprint, [this]() { camera.setSprintMode(true); });
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -73,14 +87,6 @@ void Engine::EndFrame() {
     glfwSwapBuffers(window);
 }
 
-// Optional: Add helper to get view/projection matrices
-glm::mat4 Engine::GetViewMatrix() {
-    return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-}
-
-glm::mat4 Engine::GetProjectionMatrix() {
-    return m_projection;
-}
 
 
 
@@ -95,9 +101,10 @@ void Engine::framebuffer_size_callback(GLFWwindow* windowInstance, int width, in
     if (engine) engine->on_framebuffer_size(windowInstance, width, height);
 }
 void Engine::on_framebuffer_size(GLFWwindow* windowInstance, int width, int height) {
+    screen_width = width;
+    screen_height = height;
     glViewport(0, 0, width, height);
-    // set the projection matrix to the new aspect ratio
-    m_projection = glm::perspective(glm::radians(fov), (float)width / (float)height, 0.1f, 1000.0f);
+    camera.updateProjectionMatrix(width, height);
 }
 
 
@@ -107,8 +114,7 @@ void Engine::scroll_callback(GLFWwindow* windowInstance, double xOffset, double 
     if (engine) engine->on_scroll(windowInstance, xOffset, yOffset);
 }
 void Engine::on_scroll(GLFWwindow* windowInstance, double xOffset, double yOffset) {
-    fov -= (float)yOffset;
-    fov = glm::clamp(fov, 1.0f, 45.0f);
+    camera.adjustFOV(yOffset);
 }
 
 
@@ -124,6 +130,8 @@ void Engine::on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos)
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
+        camera.resetMouseState();
+        return;
     }
 
     float xOffset = xpos - lastX;
@@ -131,24 +139,7 @@ void Engine::on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    const float sensitivity = 0.2f;
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    yaw += xOffset;
-    pitch -= yOffset;
-
-    if(pitch > 89.0f)
-        pitch =  89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-
-    
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
+    camera.rotateFromMouse(xOffset, yOffset);
 }
 
 
@@ -164,37 +155,13 @@ void Engine::process_input() {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         isMouseCaptured = false;
         firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
-        //glfwSetWindowShouldClose(window, true);
+        camera.resetMouseState();
+        camera.setSprintMode(false);
     }
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         isMouseCaptured = true;
         firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
+        camera.resetMouseState();
     }
-    // camera movement
-    const float normalCameraSpeed = 5.0f * deltaTime;
-    const float fastCameraSpeed = normalCameraSpeed * 20.0f;
-    float currentCameraSpeed = normalCameraSpeed;
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        currentCameraSpeed = fastCameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-        currentCameraSpeed = normalCameraSpeed;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += currentCameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= currentCameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * currentCameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * currentCameraSpeed;
-}
-
-
-glm::vec3& Engine::getCameraPosLocation() {
-    return cameraPos;
-}
-glm::vec3 Engine::getCameraPos() {
-    return cameraPos;
 }

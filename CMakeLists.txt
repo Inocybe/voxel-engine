@@ -29,6 +29,10 @@ add_library(shader src/shader.cpp)
 target_include_directories(shader PUBLIC include)
 target_link_libraries(shader PUBLIC glm glad)
 
+add_library(camera src/camera.cpp)
+target_include_directories(camera PUBLIC include)
+target_link_libraries(camera PUBLIC glm)
+
 add_library(texture src/texture.cpp)
 target_include_directories(texture PUBLIC include)
 target_link_libraries(texture PUBLIC glm glad)
@@ -46,7 +50,7 @@ target_link_libraries(chunk PUBLIC glm heightmap)
 
 add_library(engine src/engine.cpp)
 target_include_directories(engine PUBLIC include)
-target_link_libraries(engine PUBLIC glm glad glfw)
+target_link_libraries(engine PUBLIC glm glad glfw camera)
 
 add_library(player src/player.cpp)
 target_include_directories(player PUBLIC include)
