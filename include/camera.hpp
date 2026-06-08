@@ -7,6 +7,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
+namespace CameraDirection {
+    enum Type {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT,
+        UP,
+        DOWN
+    };
+}
+
+
 class Camera {
 public:
     Camera(unsigned int screenWidth = 800, unsigned int screenHeight = 600);
