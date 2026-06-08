@@ -49,23 +49,23 @@ bool Player::isChunkInRenderDistance(const glm::ivec3& chunkCoords) const {
 
 
 void Player::moveForward() {
-    printf("Move Forward\n");
+    camera.move(CameraDirection::Type::FORWARD, deltaTime);
 }
 void Player::moveBackward() {
-    printf("Move Backward\n");
+    camera.move(CameraDirection::Type::BACKWARD, deltaTime);
 }
 void Player::moveLeft() {
-    printf("Move Left\n");
+    camera.move(CameraDirection::Type::LEFT, deltaTime);
 }
 void Player::moveRight() {
-    printf("Move Right\n");
+    camera.move(CameraDirection::Type::RIGHT, deltaTime);
 }
 void Player::moveUp() {
-    printf("Move Up\n");
+    camera.move(CameraDirection::Type::UP, deltaTime);
 }
 void Player::moveDown() {
-    printf("Move Down\n");
+    camera.move(CameraDirection::Type::DOWN, deltaTime);
 }
 void Player::sprint() {
-    printf("Sprint\n");
+    camera.setSprintMode(true);
 }

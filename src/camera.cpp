@@ -32,33 +32,23 @@ void Camera::adjustFOV(float delta) {
     updateProjectionMatrix(screenWidth, screenHeight);
 }
 
-void Camera::moveForward(float deltaTime) {
-    float speed = normalSpeed * deltaTime;
-    if (isSprinting)
-        speed *= sprintMultiplier;
-    cameraPos += speed * cameraFront;
+void Camera::move(CameraDirection::Type direction, float deltaTime) {
+    switch (direction) {
+        case CameraDirection::Type::FORWARD:
+            moveForward(deltaTime);
+            break;
+        case CameraDirection::Type::BACKWARD:
+            moveBackward(deltaTime);
+            break;
+        case CameraDirection::Type::LEFT:
+            moveLeft(deltaTime);
+            break;
+        case CameraDirection::Type::RIGHT:
+            moveRight(deltaTime);
+            break;
+    }
 }
 
-void Camera::moveBackward(float deltaTime) {
-    float speed = normalSpeed * deltaTime;
-    if (isSprinting)
-        speed *= sprintMultiplier;
-    cameraPos -= speed * cameraFront;
-}
-
-void Camera::moveLeft(float deltaTime) {
-    float speed = normalSpeed * deltaTime;
-    if (isSprinting)
-        speed *= sprintMultiplier;
-    cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-}
-
-void Camera::moveRight(float deltaTime) {
-    float speed = normalSpeed * deltaTime;
-    if (isSprinting)
-        speed *= sprintMultiplier;
-    cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
-}
 
 void Camera::setSprintMode(bool sprint) {
     isSprinting = sprint;
@@ -97,4 +87,42 @@ void Camera::updateCameraDirection() {
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     cameraFront = glm::normalize(direction);
+}
+
+
+
+
+
+
+
+
+
+
+
+void Camera::moveForward(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos += speed * cameraFront;
+}
+
+void Camera::moveBackward(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos -= speed * cameraFront;
+}
+
+void Camera::moveLeft(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+}
+
+void Camera::moveRight(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
 }

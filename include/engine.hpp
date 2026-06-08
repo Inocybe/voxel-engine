@@ -39,7 +39,6 @@ struct Bindings {
     InputAction action;
     InputType type;
 };
-
 public:
     void bindKey(int key, InputAction action, InputType type = InputType::Press) {
         bindings[key] = {action, type};
@@ -70,8 +69,6 @@ public:
             previousStates[key] = isPressed;
         }
     }   
-
-
 
 private:
     void executeAction(int key) {
@@ -114,7 +111,6 @@ class Engine {
 public:
     GLFWwindow* window;
     InputManager inputManager;
-    Camera camera;
     float deltaTime = 0.0;
 
     // ima just default this to default monitor and window
@@ -132,12 +128,7 @@ public:
     static void mouse_callback(GLFWwindow* windowInstance, double xpos, double ypos);
     static void framebuffer_size_callback(GLFWwindow* windowInstance, int width, int height);
 
-    GLFWwindow* getWindow() const { return window; }
-    
-    // Camera matrix accessors
-    glm::mat4 GetViewMatrix() const { return camera.GetViewMatrix(); }
-    glm::mat4 GetProjectionMatrix() const { return camera.GetProjectionMatrix(); }
-    glm::vec3& getCameraPosLocation() { return camera.getCameraPosLocation(); }
+    GLFWwindow* getWindow() const { return window; }    
 private:
     // window vars
     unsigned int screen_width;

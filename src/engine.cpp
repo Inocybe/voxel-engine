@@ -1,7 +1,7 @@
 #include <engine.hpp>
 
 Engine::Engine(unsigned int screenWidth, unsigned int screenHeight, const char* windowName) : 
-screen_height(screenHeight), screen_width(screenWidth), camera(screenWidth, screenHeight) {
+screen_height(screenHeight), screen_width(screenWidth) {
     glfwSetErrorCallback(Engine::error_callback);
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -38,20 +38,6 @@ screen_height(screenHeight), screen_width(screenWidth), camera(screenWidth, scre
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     on_framebuffer_size(window, fbWidth, fbHeight);
-
-    // Setup input bindings for camera movement
-    inputManager.bindKey(GLFW_KEY_W, InputAction::MoveForward, InputType::Hold);
-    inputManager.bindKey(GLFW_KEY_S, InputAction::MoveBackward, InputType::Hold);
-    inputManager.bindKey(GLFW_KEY_A, InputAction::MoveLeft, InputType::Hold);
-    inputManager.bindKey(GLFW_KEY_D, InputAction::MoveRight, InputType::Hold);
-    inputManager.bindKey(GLFW_KEY_LEFT_SHIFT, InputAction::Sprint, InputType::Hold);
-
-    // Subscribe input actions to camera methods
-    inputManager.subscribe(InputAction::MoveForward, [this]() { camera.moveForward(deltaTime); });
-    inputManager.subscribe(InputAction::MoveBackward, [this]() { camera.moveBackward(deltaTime); });
-    inputManager.subscribe(InputAction::MoveLeft, [this]() { camera.moveLeft(deltaTime); });
-    inputManager.subscribe(InputAction::MoveRight, [this]() { camera.moveRight(deltaTime); });
-    inputManager.subscribe(InputAction::Sprint, [this]() { camera.setSprintMode(true); });
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -104,7 +90,7 @@ void Engine::on_framebuffer_size(GLFWwindow* windowInstance, int width, int heig
     screen_width = width;
     screen_height = height;
     glViewport(0, 0, width, height);
-    camera.updateProjectionMatrix(width, height);
+    //camera.updateProjectionMatrix(width, height);
 }
 
 
@@ -114,7 +100,7 @@ void Engine::scroll_callback(GLFWwindow* windowInstance, double xOffset, double 
     if (engine) engine->on_scroll(windowInstance, xOffset, yOffset);
 }
 void Engine::on_scroll(GLFWwindow* windowInstance, double xOffset, double yOffset) {
-    camera.adjustFOV(yOffset);
+    //camera.adjustFOV(yOffset);
 }
 
 
@@ -130,7 +116,7 @@ void Engine::on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos)
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
-        camera.resetMouseState();
+        //camera.resetMouseState();
         return;
     }
 
@@ -139,7 +125,7 @@ void Engine::on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    camera.rotateFromMouse(xOffset, yOffset);
+    //camera.rotateFromMouse(xOffset, yOffset);
 }
 
 
@@ -155,13 +141,12 @@ void Engine::process_input() {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         isMouseCaptured = false;
         firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
-        camera.resetMouseState();
-        camera.setSprintMode(false);
+        //camera.resetMouseState();
     }
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         isMouseCaptured = true;
         firstMouse = true; // reset first mouse so that when the mouse is captured again it doesn't cause a sudden jump in camera direction
-        camera.resetMouseState();
+        //camera.resetMouseState();
     }
 }

@@ -19,7 +19,6 @@ namespace CameraDirection {
     };
 }
 
-
 class Camera {
 public:
     Camera(unsigned int screenWidth = 800, unsigned int screenHeight = 600);
@@ -31,12 +30,9 @@ public:
     // Scroll input handling
     void adjustFOV(float delta);
 
-    // Movement input handling
-    void moveForward(float deltaTime);
-    void moveBackward(float deltaTime);
-    void moveLeft(float deltaTime);
-    void moveRight(float deltaTime);
-    void setSprintMode(bool isSprinting);
+    // movement input handling
+    void move(CameraDirection::Type direction, float deltaTime);
+
 
     // Matrix getters
     glm::mat4 GetViewMatrix() const;
@@ -79,4 +75,13 @@ private:
 
     // Helper to update direction vector from yaw/pitch
     void updateCameraDirection();
+
+
+    // Movement input handling
+    void moveForward(float deltaTime);
+    void moveBackward(float deltaTime);
+    void moveLeft(float deltaTime);
+    void moveRight(float deltaTime);
+    void setSprintMode(bool isSprinting);
+
 };
