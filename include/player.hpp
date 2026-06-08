@@ -5,6 +5,7 @@ class InputManager;
 
 
 #include <glm/glm.hpp>
+#include <camera.hpp>
 
 namespace PlayerDistance {
     // Render distance is a cylindar shape
@@ -15,7 +16,7 @@ namespace PlayerDistance {
 
 class Player {
 public:
-    Player(World* world, InputManager& inputManager, glm::vec3& cameraPos);
+    Player(World* world, InputManager& inputManager, glm::vec3& pos);
     void update();
 
     glm::ivec3 getChunkCoords() const;
@@ -23,6 +24,7 @@ public:
 private:
     World* world;
     InputManager& inputManager;
+    Camera camera;
     glm::vec3& pos;
 
     float lastFrameTime = 0.0f;

@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-Player::Player(World* world, InputManager& inputManager, glm::vec3& cameraPos) : world(world), inputManager(inputManager), pos(cameraPos) {
+Player::Player(World* world, InputManager& inputManager, glm::vec3& pos) : world(world), inputManager(inputManager), pos(pos) {
     inputManager.bindKey(GLFW_KEY_W, InputAction::MoveForward, InputType::Hold);
     inputManager.bindKey(GLFW_KEY_S, InputAction::MoveBackward, InputType::Hold);
     inputManager.bindKey(GLFW_KEY_A, InputAction::MoveLeft, InputType::Hold);
