@@ -16,16 +16,21 @@ namespace PlayerDistance {
 
 class Player {
 public:
-    Player(World* world, InputManager& inputManager, glm::vec3& pos);
+
+    Player(World* world, InputManager& inputManager, glm::vec3 pos);
+    ~Player() {
+        delete camera;
+    }
     void update();
 
     glm::ivec3 getChunkCoords() const;
     bool isChunkInRenderDistance(const glm::ivec3& chunkCoords) const;
+    Camera& getCamera() { return *camera; }
 private:
     World* world;
+    Camera* camera = nullptr;
     InputManager& inputManager;
-    Camera camera;
-    glm::vec3& pos;
+    glm::vec3 pos;
 
     float lastFrameTime = 0.0f;
     float deltaTime = 0.0f;

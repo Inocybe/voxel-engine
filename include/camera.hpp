@@ -21,7 +21,7 @@ namespace CameraDirection {
 
 class Camera {
 public:
-    Camera(unsigned int screenWidth = 800, unsigned int screenHeight = 600);
+    Camera(glm::vec3& startingPos, unsigned int screenWidth = 800, unsigned int screenHeight = 600);
 
     // Mouse input handling
     void rotateFromMouse(float deltaX, float deltaY, float sensitivity = 0.2f);
@@ -32,7 +32,6 @@ public:
 
     // movement input handling
     void move(CameraDirection::Type direction, float deltaTime);
-
 
     // Matrix getters
     glm::mat4 GetViewMatrix() const;
@@ -82,6 +81,8 @@ private:
     void moveBackward(float deltaTime);
     void moveLeft(float deltaTime);
     void moveRight(float deltaTime);
+    void moveUp(float deltaTime);
+    void moveDown(float deltaTime);
     void setSprintMode(bool isSprinting);
 
 };

@@ -37,7 +37,7 @@ int main() {
     shader->use();
 
 
-    World world(engine->inputManager, engine->getCameraPosLocation(), shader.get());
+    World world(engine->inputManager, shader.get());
 
     
     // RENDER LOOP
@@ -46,8 +46,8 @@ int main() {
 
 
         // Set view and projection and position
-        shader->setMat4("view", engine->GetViewMatrix());
-        shader->setMat4("projection", engine->GetProjectionMatrix());
+        shader->setMat4("view", world.player->getCamera().GetViewMatrix());
+        shader->setMat4("projection", world.player->getCamera().GetProjectionMatrix());
 
         world.update();        
 

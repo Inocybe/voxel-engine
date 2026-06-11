@@ -101,12 +101,11 @@ public:
     ThreadPool chunkWorkerThreadPool{4}; // thread pool for generating chunks, currently set to 2 threads, but can be increased later if needed
 
 
-    World(InputManager& inputManager, glm::vec3& cameraPos, Shader* shader);
+    World(InputManager& inputManager, Shader* shader);
 
 
     void update();
 private:
-    glm::vec3& cameraPos;
     Shader* shader;
     glm::ivec3 lastPlayerChunkCoords = glm::ivec3(0);
 

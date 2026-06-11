@@ -6,7 +6,9 @@
 
 #include <iostream>
 
-Player::Player(World* world, InputManager& inputManager, glm::vec3& pos) : world(world), inputManager(inputManager), pos(pos) {
+Player::Player(World* world, InputManager& inputManager, glm::vec3 pos) : world(world), inputManager(inputManager), pos(pos) {
+    camera = new Camera(pos);
+
     inputManager.bindKey(GLFW_KEY_W, InputAction::MoveForward, InputType::Hold);
     inputManager.bindKey(GLFW_KEY_S, InputAction::MoveBackward, InputType::Hold);
     inputManager.bindKey(GLFW_KEY_A, InputAction::MoveLeft, InputType::Hold);
@@ -49,23 +51,23 @@ bool Player::isChunkInRenderDistance(const glm::ivec3& chunkCoords) const {
 
 
 void Player::moveForward() {
-    camera.move(CameraDirection::Type::FORWARD, deltaTime);
+    camera->move(CameraDirection::Type::FORWARD, deltaTime);
 }
 void Player::moveBackward() {
-    camera.move(CameraDirection::Type::BACKWARD, deltaTime);
+    camera->move(CameraDirection::Type::BACKWARD, deltaTime);
 }
 void Player::moveLeft() {
-    camera.move(CameraDirection::Type::LEFT, deltaTime);
+    camera->move(CameraDirection::Type::LEFT, deltaTime);
 }
 void Player::moveRight() {
-    camera.move(CameraDirection::Type::RIGHT, deltaTime);
+    camera->move(CameraDirection::Type::RIGHT, deltaTime);
 }
 void Player::moveUp() {
-    camera.move(CameraDirection::Type::UP, deltaTime);
+    camera->move(CameraDirection::Type::UP, deltaTime);
 }
 void Player::moveDown() {
-    camera.move(CameraDirection::Type::DOWN, deltaTime);
+    camera->move(CameraDirection::Type::DOWN, deltaTime);
 }
 void Player::sprint() {
-    camera.setSprintMode(true);
+    //camera.setSprintMode(true);
 }

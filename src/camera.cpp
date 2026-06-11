@@ -1,7 +1,7 @@
 #include <camera.hpp>
 
-Camera::Camera(unsigned int screenWidth, unsigned int screenHeight)
-    : screenWidth(screenWidth), screenHeight(screenHeight) {
+Camera::Camera(glm::vec3& startingPos, unsigned int screenWidth, unsigned int screenHeight)
+    : cameraPos(startingPos), screenWidth(screenWidth), screenHeight(screenHeight) {
     updateProjectionMatrix(screenWidth, screenHeight);
 }
 
@@ -45,6 +45,12 @@ void Camera::move(CameraDirection::Type direction, float deltaTime) {
             break;
         case CameraDirection::Type::RIGHT:
             moveRight(deltaTime);
+            break;
+        case CameraDirection::Type::UP:
+            cameraPos += normalSpeed * deltaTime * cameraUp;
+            break;
+        case CameraDirection::Type::DOWN:
+            cameraPos -= normalSpeed * deltaTime * cameraUp;
             break;
     }
 }
@@ -125,4 +131,18 @@ void Camera::moveRight(float deltaTime) {
     if (isSprinting)
         speed *= sprintMultiplier;
     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * speed;
+}
+
+void Camera::moveUp(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos += speed * cameraUp;
+}
+
+void Camera::moveDown(float deltaTime) {
+    float speed = normalSpeed * deltaTime;
+    if (isSprinting)
+        speed *= sprintMultiplier;
+    cameraPos -= speed * cameraUp;
 }
