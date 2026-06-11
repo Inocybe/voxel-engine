@@ -44,6 +44,7 @@ screen_height(screenHeight), screen_width(screenWidth) {
 
 }
 
+
 Engine::~Engine() {
     glfwTerminate();
 }
