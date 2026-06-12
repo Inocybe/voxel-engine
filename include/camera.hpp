@@ -5,65 +5,45 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-enum class CameraMovement {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
-
 class Camera {
 public:
-    // Constructor and destructor
-    Camera(float screenWidth, float screenHeight);
-    ~Camera();
+    bool isMouseCaptured = true;
 
-    // Get matrices
-    glm::mat4 GetViewMatrix() const;
-    glm::mat4 GetProjectionMatrix() const;
+    Camera(float screenWidth, float screenHeight,
+           glm::vec3 startPos = glm::vec3(0.0f, 70.0f, 0.0f));
 
-    // Process input
-    void ProcessMouseMovement(double xpos, double ypos);
-    void ProcessMouseScroll(double yOffset);
-    void ProcessKeyboard(CameraMovement direction, float deltaTime);
+    // Called from Engine's GLFW callbacks
+    void onMouseMove(double xpos, double ypos);
+    void onScroll(double xOffset, double yOffset);
+    void onFramebufferResize(int width, int height);
 
-    // Camera control
-    void SetMouseCapture(bool captured);
-    
-    // Position access
-    glm::vec3& GetCameraPosition();
-    glm::vec3 GetCameraPosition() const;
-    void SetCameraPosition(const glm::vec3& position);
-    
-    // Window resize handling
-    void OnFrameBufferSizeChanged(int width, int height);
-    
-    // Update projection matrix with new FOV and aspect ratio
-    void UpdateProjection(float fov, float aspectRatio);
+    // Called each frame from process_input
+    void processMovement(GLFWwindow* window, float deltaTime);
+
+    // Toggle capture state; both reset firstMouse to avoid a jump on re-capture
+    void captureMouse();
+    void releaseMouse();
+
+    glm::mat4 getViewMatrix() const;
+    glm::mat4 getProjectionMatrix() const;
+    glm::vec3& getPosRef();   // reference so World/Player can hold a pointer to it
+    glm::vec3  getPos() const;
 
 private:
-    // Camera properties
-    glm::vec3 m_cameraPos;
-    glm::vec3 m_cameraFront;
-    glm::vec3 m_cameraUp;
-    
-    // Mouse tracking
-    bool m_firstMouse;
-    bool m_isMouseCaptured;
-    float m_yaw;
-    float m_pitch;
-    float m_fov;
-    
-    // Screen dimensions
-    float m_screenWidth;
-    float m_screenHeight;
-    
-    // Mouse position
-    float m_lastX;
-    float m_lastY;
-    
-    // Projection matrix
-    glm::mat4 m_projection;
+    glm::vec3 pos;
+    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+    float yaw   = -90.0f;
+    float pitch =   0.0f;
+    float fov   =  45.0f;
+
+    float lastX, lastY;
+    float aspectRatio;      // stored so scroll-triggered FOV changes can rebuild projection
+    bool  firstMouse = true;
+
+    glm::mat4 projection;
+
+    void rebuildProjection();
+    void updateDirectionVectors();
 };

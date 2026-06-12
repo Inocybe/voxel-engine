@@ -14,6 +14,7 @@
 #include <functional>
 #include <vector>
 
+#include <camera.hpp>
 
 
 enum class InputAction {
@@ -67,9 +68,7 @@ public:
 
             previousStates[key] = isPressed;
         }
-    }   
-
-
+    }
 
 private:
     void executeAction(int key) {
@@ -85,84 +84,46 @@ private:
         }
     }
 
-    std::unordered_map<int, Bindings> bindings;    
+    std::unordered_map<int, Bindings> bindings;
     std::unordered_map<int, bool> previousStates;
     std::unordered_map<InputAction, std::vector<std::function<void()>>> callbacks;
 };
 
 
-
-
-
-
-/*
-CONVNETION TO TRY TO OPEN WINDOW
-THIS WILL PREVENT ANY ERRORS
-
-    Engine* engine = nullptr;
-    try {
-        engine = new Engine(SCR_WIDTH, SCR_HEIGHT, "OpenGL Window");
-    } catch (const std::exception& e) {
-        std::cerr << "Window initizliation failed" << e.what() << std::endl;
-        return -1;
-    }
-
-*/
 class Engine {
 public:
-    GLFWwindow* window;
+    GLFWwindow*  window;
     InputManager inputManager;
-    float deltaTime = 0.0;
+    Camera       camera;        // owns all camera state
+    float        deltaTime = 0.0f;
 
-    // ima just default this to default monitor and window
     Engine(unsigned int screenWidth, unsigned int screenHeight, const char* windowName);
     ~Engine();
 
     bool Run();
     void EndFrame();
+
     glm::mat4 GetViewMatrix();
     glm::mat4 GetProjectionMatrix();
 
     void process_input();
     void calculate_delta();
 
-    static void error_callback(int id, const char* discriptor);
-    static void scroll_callback(GLFWwindow* windowInstance, double xOffset, double yOffset);
-    static void mouse_callback(GLFWwindow* windowInstance, double xpos, double ypos);
-    static void framebuffer_size_callback(GLFWwindow* windowInstance, int width, int height);
+    static void error_callback(int id, const char* descriptor);
+    static void scroll_callback(GLFWwindow* w, double xOffset, double yOffset);
+    static void mouse_callback(GLFWwindow* w, double xpos, double ypos);
+    static void framebuffer_size_callback(GLFWwindow* w, int width, int height);
 
-    // function useful for setting pointer to camrea location 
-    // can be read from at any time if set to a variable, so no need to call a function
-    // #TODO implement a glm::vec3 changeCameraPos(); so that it will update and keep same memory address
-    glm::vec3& getCameraPosLocation();   
-    glm::vec3 getCameraPos();
+    glm::vec3& getCameraPosLocation();
+    glm::vec3  getCameraPos();
     GLFWwindow* getWindow() const { return window; }
+
 private:
-    // window vars
     unsigned int screen_width;
     unsigned int screen_height;
+    float lastFrame = 0.0f;
 
-    // CAMERA VARS
-    glm::vec3 cameraPos   = glm::vec3(0.0f, 70.0f,  0.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
-    bool firstMouse = true;
-    bool isMouseCaptured = true;
-    float yaw = -90.0f;
-    float pitch = 0.0f; 
-    float fov = 45.0f;
-    glm::mat4 m_projection = glm::perspective(glm::radians(fov), (float)screen_width / (float)screen_height, 0.1f, 1000.0f);
-
-
-    // MOUSE VARS
-    float lastX = screen_width / 2.0f;
-    float lastY = screen_height / 2.0f;
-
-    // thing to store for delta time
-    float lastFrame = 0.0;
-
-
-    void on_scroll(GLFWwindow* windowInstance, double xOffset, double yOffset);
-    void on_mouse_move(GLFWwindow* windowInstance, double xpos, double ypos);
-    void on_framebuffer_size(GLFWwindow* windowInstance, int width, int height);
+    void on_scroll(GLFWwindow* w, double xOffset, double yOffset);
+    void on_mouse_move(GLFWwindow* w, double xpos, double ypos);
+    void on_framebuffer_size(GLFWwindow* w, int width, int height);
 };
