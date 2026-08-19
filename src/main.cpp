@@ -49,6 +49,14 @@ int main() {
         shader->setMat4("view", engine->GetViewMatrix());
         shader->setMat4("projection", engine->GetProjectionMatrix());
 
+        shader->setVec3("viewPos", engine->getCameraPos());
+        shader->setVec3("lightDir", glm::normalize(glm::vec3(-0.4f, -1.0f, -0.3f)));
+        shader->setVec3("lightColor", glm::vec3(1.0f, 0.98f, 0.9f));
+        shader->setVec3("baseColor", glm::vec3(0.5f, 0.75f, 0.35f));
+        shader->setVec3("fogColor", glm::vec3(0.2f, 0.3f, 0.3f));
+        shader->setFloat("fogDensity", 0.0015f);
+
+
         world.update();        
 
 

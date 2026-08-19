@@ -5,7 +5,6 @@ layout (location = 1) in int aNormal;
 layout (location = 2) in vec2 aUV;
 
 uniform vec3 chunkPos;
-
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -26,15 +25,15 @@ const vec3 normals[6] = vec3[](
 void main()
 {
 	 // World position of the vertex
-    vec4 worldPos = model * vec4(vec3(aPos) + chunkPos, 1.0);
+    vec3 localPos = vec3(aPos) + chunkPos;
+    vec4 worldPos = model * vec4(localPos, 1.0);
+
     vWorldPos = worldPos.xyz;
-
     // Transform normal to world space
-    vNormal = normals[aNormal];
-
+    vNormal = mat3(model) * normals[aNormal];
     // Pass UV
     vUV = aUV;
 
 
-	gl_Position = projection * view * model * worldPos;
+	gl_Position = projection * view * worldPos;
 }

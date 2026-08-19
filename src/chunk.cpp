@@ -136,13 +136,15 @@ Chunk::Chunk(World& world, int x, int y, int z) : x(x), y(y), z(z) {
 
 void Chunk::createChunk(Heightmap& heightmap) {
     for (int x = 0; x < CHUNK_SIZE; x++) {
-        for (int y = 0; y < CHUNK_SIZE; y++) {
-            for (int z = 0; z < CHUNK_SIZE; z++) {
-                int wx = x + this->x * CHUNK_SIZE;
-                int wy = y + this->y * CHUNK_SIZE;
-                int wz = z + this->z * CHUNK_SIZE;
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            int wx = x + this->x * CHUNK_SIZE;
+            int wz = z + this->z * CHUNK_SIZE;
+            int surface_height = heightmap.getHeight(wx, wz);
 
-                blocks[x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE] = heightmap.getBlock(wx, wy, wz);
+
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                int wy = y + this->y * CHUNK_SIZE;
+                blocks[x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE] = (wy < surface_height) ? Block{1} : Block{0};
             }
         }
     }
