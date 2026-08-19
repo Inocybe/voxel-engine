@@ -7,11 +7,6 @@ Heightmap::Heightmap(int seed1, int seed2, int min_height, int max_height) : see
 
 
 
-
-
-
-
-
 Block Heightmap::getBlock(int x, int y, int z) const {
     int height = getHeight(x, z);
 

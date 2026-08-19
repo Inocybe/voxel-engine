@@ -61,8 +61,10 @@ void meshWorker(World& world, ChunkCoords chunkPos) {
         world.meshUploadQueue.push(std::move(chunkMesh));
     }
 }
-    
+  
 
+// --- OLD ---
+/*
 // function to be called to be run on another thread
 // this function is what creates the chunk data to generate the world
 void chunkWorker(World& world, ChunkCoords chunkPos) {
@@ -94,6 +96,48 @@ void chunkWorker(World& world, ChunkCoords chunkPos) {
             world.chunkVertexGenerationQueue.push_back(chunkCoords);
         }
             
+    }
+}
+*/
+
+
+void chunkWorker(World& world, ChunkCoords chunkPos) {
+    Chunk chunk(world, (int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z);
+
+    {
+        std::shared_lock<std::shared_mutex> lock(world.heightmapMutex);
+        chunk.createChunk(world.heightmap);
+    }
+
+    {
+        std::lock_guard<std::shared_mutex> lock(world.worldMutex);
+        world.world[ChunkCoords{(int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z}] = std::make_unique<Chunk>(std::move(chunk));
+    }
+
+    {
+        std::scoped_lock lock(world.chunkStateMutex, world.chunkVertexGenerationQueueMutex);
+        auto chunkCoords = ChunkCoords{(int)chunkPos.x, (int)chunkPos.y, (int)chunkPos.z};
+
+        // queue self for meshing, same as before
+        auto it = world.chunkStates.find(chunkCoords);
+        if (it != world.chunkStates.end() && it->second == ChunkState::QueuedForGeneration) {
+            it->second = ChunkState::QueuedForMeshing;
+            world.chunkVertexGenerationQueue.push_back(chunkCoords);
+        }
+
+        // any already-meshed neighbor may have culled faces against us before
+        // our data existed -- redo them now that we're here
+        static constexpr ChunkCoords offsets[6] = {
+            {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}
+        };
+        for (const auto& off : offsets) {
+            ChunkCoords neighbor{chunkCoords.x + off.x, chunkCoords.y + off.y, chunkCoords.z + off.z};
+            auto nit = world.chunkStates.find(neighbor);
+            if (nit != world.chunkStates.end() && nit->second == ChunkState::Meshed) {
+                nit->second = ChunkState::QueuedForMeshing;
+                world.chunkVertexGenerationQueue.push_back(neighbor);
+            }
+        }
     }
 }
 
